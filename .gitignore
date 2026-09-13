@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets
+.env
+
+# Local-only learning docs (any folder, e.g. docs/chapter-01/). Never push these.
+decisions.md
+errors.md
+code_logic.md
+interview_prep.md
+claude-learn.md
+CLAUDE.local.md
+
+# Miner working state (re-creatable)
+data/cache/
+data/repos/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
