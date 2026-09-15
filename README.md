@@ -11,8 +11,9 @@ This project is built incrementally. What exists today:
 | Phase | Component | Status |
 |---|---|---|
 | 0 | Repository foundation (uv, ruff, pytest, CI) | done |
-| 1 | Real CI-failure dataset miner + 50-case dataset | done (human label review pending) |
-| 2+ | Baseline analyzer, LangGraph agent, tools, retrieval, fix verification, UI | not started |
+| 1 | Real CI-failure dataset miner: 50-case dev split + 25-case held-out test split | done (human label review pending) |
+| 2 | Deterministic rule baseline + evaluation harness | done |
+| 3+ | LangGraph agent, tools, retrieval, fix verification, UI | not started |
 
 Nothing beyond the table above is implemented yet: there is no LLM, agent, API, database,
 UI or tracing in this repository today.
@@ -34,15 +35,15 @@ The miner collects **real** failed GitHub Actions runs from public Python reposi
 pairs each failure with the code change that made CI green again.
 
 ```bash
-uv run python -m ci_triage.miner mine        # mine using data/repos.yaml
-uv run python -m ci_triage.miner stats       # dataset statistics (computed from the JSONL)
-uv run python -m ci_triage.miner annotate    # human review queue + audit sample
+uv run python -m ci_triage.miner mine                                # dev split (data/repos.yaml)
+uv run python -m ci_triage.miner --config data/repos_test.yaml mine  # held-out test split
+uv run python -m ci_triage.miner stats                               # statistics from the JSONL
+uv run python -m ci_triage.miner annotate                            # human review + audit sample
 ```
 
 ### How it works
 
-1. For each repo in `data/repos.yaml`, list failed workflow runs (last 80 days; Actions logs
-   expire after ~90).
+1. For each repo, list failed workflow runs (last 80 days; Actions logs expire after ~90).
 2. Group runs into **red streaks** by `(workflow, event, head repository, branch)`, so forks
    that share a branch name like `main` never mix.
 3. For each streak, take the last red run and the next green run on the same key. The code
@@ -63,28 +64,75 @@ Each record separates what an investigator could know **at failure time** (`inpu
 information from the future (`ground_truth`: the fix). Schema validation rejects any record
 where a fix commit SHA appears in `input`.
 
-### Dataset (first milestone)
+### Dataset
 
-Computed by `python -m ci_triage.miner stats` on `data/processed/cases.jsonl`:
+| | Dev split | Held-out test split |
+|---|---|---|
+| File | `data/processed/dev/cases.jsonl` | `data/processed/test/cases.jsonl` |
+| Cases / repositories | 50 / 14 | 25 / 7 (disjoint from dev) |
+| Red streaks examined | 246 | 132 |
+| Fix status | 44 matched (all single-commit), 6 same-commit reruns | 25 matched (18 high, 7 medium confidence) |
+| Labels | 32 `auto_verified`, 18 `needs_review` | 19 `auto_verified`, 6 `needs_review` |
+| Human-reviewed labels | 0 | 0 |
 
-| | |
-|---|---|
-| Cases | 50 |
-| Repositories | 14 |
-| Red streaks examined | 246 (187 had no green run on the same branch, 7 ambiguous fixes, 2 without a failed job) |
-| Events | 43 pull_request, 7 push |
-| Fix status | 44 matched (all single-commit, 35 descendant + 9 amended commits), 6 same-commit reruns |
-| Labels | 32 `auto_verified`, 18 `needs_review`, 0 human-reviewed yet |
+Dev category distribution (automatic labels): FORMAT 9, TEST 8, POLICY_CHECK 7, TYPE 6,
+LINT 5, COVERAGE 5, DEPENDENCY 4, CI_CONFIGURATION 3, BUILD / NETWORK / SYNTAX 1 each.
+Test: TEST 8, LINT 5, UNKNOWN 5, TYPE 4, BUILD 2, CI_CONFIGURATION 1.
 
-Category distribution (automatic labels; not yet human-audited):
+The dev split is the data the labeling and baseline rules were developed on. The test split
+comes from repositories that were never inspected while writing rules; it was mined and
+evaluated only after the baseline was committed.
 
-| Category | Cases | | Category | Cases |
-|---|---|---|---|---|
-| FORMAT_FAILURE | 9 | | COVERAGE_FAILURE | 5 |
-| TEST_FAILURE | 8 | | DEPENDENCY_FAILURE | 4 (all `needs_review`) |
-| POLICY_CHECK_FAILURE | 7 (all `needs_review`) | | CI_CONFIGURATION_FAILURE | 3 |
-| TYPE_ERROR | 6 | | BUILD / NETWORK / SYNTAX | 1 each |
-| LINT_FAILURE | 5 | | | |
+## Phase 2: rule baseline and evaluation harness
+
+A deterministic investigator (no LLM) that sets the floor later systems must beat, plus the
+harness that scores any investigator the same way.
+
+```bash
+uv run python -m ci_triage.evaluation run --system baseline --split dev
+uv run python -m ci_triage.evaluation score --system baseline --split test   # re-score only
+```
+
+- Systems receive a `CaseView` (failure-time information only; the type has no ground-truth
+  fields) and must return a structured `Diagnosis`: category, root-cause hypothesis,
+  confidence, verbatim evidence, ranked suspect files, verification status.
+- The baseline classifies with ordered log rules (independent of the dataset labeler,
+  enforced by an import-guard test) and ranks suspect files from log references and the
+  code changed since the last passing state.
+- Metrics: category accuracy per label status with Wilson 95% intervals; file-level fault
+  localization (hit@1, hit@3, MRR) against the files the real fix changed, excluding
+  non-code fixes; evidence grounding (every quoted excerpt must exist in the input);
+  abstention; latency and cost.
+
+### Results (rule baseline v1)
+
+| Metric | Dev (50) | Held-out test (25) |
+|---|---|---|
+| Localization hit@1 | 57.1% (24/42, CI 42-71%) | **43.5%** (10/23, CI 26-63%) |
+| Localization hit@3 | 78.6% (CI 64-88%) | **56.5%** (CI 37-74%) |
+| Localization MRR | 0.682 | **0.505** |
+| Category accuracy vs automatic labels | 94.0% | 80.0% |
+| Evidence grounding | 121/121 | 62/62 |
+| Abstention (UNKNOWN) | 0% | 16% |
+| Mean latency / cost | 2.4 ms / $0 | 2.3 ms / $0 |
+
+How to read this:
+
+- **Fault localization is the meaningful number**: it is scored against the real fix and
+  does not depend on labels. It drops on held-out repositories, so the dev numbers were
+  optimistic.
+- **Category accuracy is not yet trustworthy.** The gold labels are automatic and partly
+  come from similar log patterns, so agreement is inflated (100% on dev `needs_review`
+  cases). Of the 5 test disagreements, 2 look like label errors, 2 are baseline errors and 1
+  depends on hindsight. Category accuracy becomes meaningful only after the human review
+  (`annotate`), followed by `evaluation score`.
+- Known baseline v1 bugs found in the held-out error analysis, deliberately **not** fixed in
+  v1 so the test numbers stay clean: the coverage rule also matches the coverage *success*
+  message ("Required test coverage of 99.0% reached"), and coverage is checked before test
+  failures although failing tests are the usual cause of low coverage. A fixed v2 has to be
+  evaluated on new held-out data.
+- Dev-split ablation for localization (hit@1): log references only 0.405, changed files only
+  0.500, combined 0.571.
 
 ### Known limitations
 
@@ -92,18 +140,19 @@ Category distribution (automatic labels; not yet human-audited):
   (a single commit between red and green, and the same job passing), not that the change is
   semantically confirmed. Example: some pip PR-template failures went green after an
   unrelated commit, while the real fix was editing the PR description.
-- **Automatic labels describe the failure class, not always the deepest cause.** A test
-  failure caused by an upstream deprecation can be labelled `TEST_FAILURE` when both signals
-  agree. Label precision will be measured with a human audit sample before any evaluation
-  relies on it.
+- **Automatic labels describe the failure class, not always the deepest cause**, and the
+  labeler was developed on the dev split (5 test cases are `UNKNOWN`). Label precision will
+  be measured with a human audit sample.
 - **Selection bias.** Popular, well-maintained, mostly pure-Python repos; only fixes that
-  land on the same branch inside the 80-day window; single-commit fixes dominate. 76% of examined streaks
-  never went green on the same branch (abandoned or superseded PRs) and are excluded.
-- **Small sample.** 50 cases across 16 categories; several categories have 0-1 examples.
+  land on the same branch inside the 80-day window; single-commit fixes dominate. Most
+  examined streaks never went green on the same branch and are excluded.
+- **Small samples.** 50 + 25 cases across 16 categories; several categories have 0-1
+  examples, and confidence intervals are wide.
 - **Log coverage.** When the error is printed by an earlier step than the one that fails
   (e.g. a separate "error out" step), the excerpt misses it.
 - For `pull_request` runs GitHub tests a merge commit with the base branch; base-branch
   changes between two runs are not part of the fix diff.
+- The baseline's `confidence` is a fixed per-rule number, not a calibrated probability.
 
 ### Data provenance
 
