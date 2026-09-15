@@ -162,6 +162,11 @@ class GitRepo:
                 hunks.append(f"{current} {line}")
         return hunks
 
+    def list_files(self, sha: str) -> list[str]:
+        """All file paths at a commit (trees are present in a blobless clone)."""
+        out = self._git("ls-tree", "-r", "--name-only", validate_sha(sha))
+        return [line for line in out.splitlines() if line]
+
     def read_file(self, sha: str, path: str, max_chars: int) -> tuple[str, bool] | None:
         """File content at a commit, or None if absent/binary."""
         try:

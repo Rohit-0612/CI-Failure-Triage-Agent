@@ -1,0 +1,42 @@
+# Miner configuration. Every repo below was checked (2026-09-13) to be a Python
+# project using GitHub Actions with failed runs in the last 80 days.
+# Mostly pure-Python projects, so fixes can later be re-tested in isolation (Phase 7).
+# Order matters: mining stops once target_cases is reached.
+
+target_cases: 50
+max_cases_per_repo: 4
+max_flaky_cases: 10
+lookback_days: 80
+events: [push, pull_request]
+
+repos:
+  - pydantic/pydantic
+  - pallets/flask
+  - pallets/click
+  - pallets/jinja
+  - pallets/werkzeug
+  - pytest-dev/pytest
+  - Textualize/rich
+  - Textualize/textual
+  - Kludex/starlette
+  - fastapi/fastapi
+  - psf/black
+  - psf/requests
+  - pypa/pip
+  - pypa/pipx
+  - tox-dev/tox
+  - scrapy/scrapy
+  - httpie/cli
+  - python/mypy
+  - pylint-dev/pylint
+  - pypa/setuptools
+  - jazzband/pip-tools
+  - mkdocs/mkdocs
+  - Kludex/uvicorn
+  - sphinx-doc/sphinx
+  - beetbox/beets
+  - ipython/ipython
+  - networkx/networkx
+  - python-attrs/attrs
+  - aio-libs/aiohttp
+  - celery/celery
