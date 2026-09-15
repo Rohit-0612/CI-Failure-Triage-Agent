@@ -325,6 +325,8 @@ class Miner:
                 fix_signal=SignalResult(category=fix_sig.category, rule=fix_sig.rule),
                 label_confidence=decision.confidence,
                 label_status=decision.status,
+                label_rule=decision.rule,
+                auto_category=decision.category,
             ),
         )
 

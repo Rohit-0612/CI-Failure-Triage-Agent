@@ -292,7 +292,9 @@ def combine(log: Signal, fix: FixSignal) -> LabelDecision:
         confidence: LabelConfidence = "medium" if weak else "high"
         return LabelDecision(log_cat, confidence, "auto_verified", "signals_agree")
     if log_cat in fix.compatible:
-        if fix.overrides or (log_cat == C.UNKNOWN and fix.category is not None):
+        # Only fixes whose category says the cause was outside the code (dependency,
+        # CI config, docker, flaky) may decide the label on their own.
+        if fix.overrides:
             category = fix.category or log_cat
             confidence = "high" if fix.decisive else "medium"
             return LabelDecision(category, confidence, "auto_verified", "fix_refines_log")

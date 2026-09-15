@@ -135,6 +135,10 @@ class Labels(_Model):
     fix_signal: SignalResult
     label_confidence: Literal["high", "medium", "low"]
     label_status: Literal["auto_verified", "needs_review", "human_verified"]
+    # Why the auto-labeler decided this (labeling.combine rule, e.g. "signals_conflict").
+    label_rule: str | None = None
+    # The automatic category, kept after human review so audit precision is measurable.
+    auto_category: FailureCategory | None = None
     audited: bool = False
     root_cause_text: str | None = None
     fix_text: str | None = None

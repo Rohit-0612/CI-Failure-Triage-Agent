@@ -151,6 +151,24 @@ def test_stage_guess_with_decisive_flaky_evidence_is_high():
     assert (d.category, d.confidence) == (C.FLAKY, "high")
 
 
+def test_unknown_log_with_code_fix_category_needs_review():
+    # Real case: no log rule matched, fix only touched tests. One signal is not verification.
+    d = combine(Signal(C.UNKNOWN, "no_rule_matched"), fix(C.TEST_FAILURE, {C.UNKNOWN}))
+    assert (d.category, d.status) == (C.UNKNOWN, "needs_review")
+
+
+def test_unknown_log_with_outside_cause_fix_takes_fix_category():
+    d = combine(
+        Signal(C.UNKNOWN, "no_rule_matched"),
+        fix(C.CI_CONFIGURATION_FAILURE, {C.UNKNOWN}, overrides=True),
+    )
+    assert (d.category, d.confidence, d.status) == (
+        C.CI_CONFIGURATION_FAILURE,
+        "medium",
+        "auto_verified",
+    )
+
+
 def test_conflict_goes_to_review():
     d = combine(Signal(C.FORMAT_FAILURE, "formatter"), fix(C.FLAKY, {C.TEST_FAILURE}))
     assert (d.category, d.status) == (C.FORMAT_FAILURE, "needs_review")
