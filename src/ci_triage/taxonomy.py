@@ -29,6 +29,9 @@ class FailureCategory(StrEnum):
     CI_CONFIGURATION_FAILURE = "CI_CONFIGURATION_FAILURE"
     NETWORK_FAILURE = "NETWORK_FAILURE"
     TIMEOUT = "TIMEOUT"
+    # Added from mined data (ADR-017): common in real CI, not covered by the first list.
+    COVERAGE_FAILURE = "COVERAGE_FAILURE"  # tests pass but coverage is below a threshold
+    POLICY_CHECK_FAILURE = "POLICY_CHECK_FAILURE"  # PR metadata gates: changelog, checklist
     FLAKY = "FLAKY"  # only assignable with hindsight (same code later passed)
     UNKNOWN = "UNKNOWN"
 
@@ -49,6 +52,7 @@ class FailedStage(StrEnum):
 PRECEDENCE: tuple[FailureCategory, ...] = (
     FailureCategory.TIMEOUT,
     FailureCategory.CI_CONFIGURATION_FAILURE,
+    FailureCategory.POLICY_CHECK_FAILURE,
     FailureCategory.DOCKER_FAILURE,
     FailureCategory.DEPENDENCY_FAILURE,
     FailureCategory.SYNTAX_ERROR,
@@ -61,6 +65,8 @@ PRECEDENCE: tuple[FailureCategory, ...] = (
     FailureCategory.TYPE_ERROR,
     FailureCategory.BUILD_FAILURE,
     FailureCategory.TEST_FAILURE,
+    # Below TEST: when tests fail, low coverage is a consequence, not the cause.
+    FailureCategory.COVERAGE_FAILURE,
     FailureCategory.FLAKY,
     FailureCategory.UNKNOWN,
 )

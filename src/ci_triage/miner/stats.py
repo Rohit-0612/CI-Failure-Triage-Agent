@@ -28,7 +28,8 @@ def load_rejections(path: Path) -> list[dict[str, Any]]:
 
 def compute_stats(cases: list[CaseRecord], rejections: list[dict[str, Any]]) -> dict[str, Any]:
     def count(values) -> dict[str, int]:
-        return dict(Counter(values).most_common())
+        # str() so enum keys print as plain values ("TEST_FAILURE"), not reprs.
+        return {str(k): v for k, v in Counter(values).most_common()}
 
     matched = [c for c in cases if c.ground_truth.fix_status == "matched"]
     audited = [c for c in cases if c.labels.audited and c.labels.auto_category is not None]

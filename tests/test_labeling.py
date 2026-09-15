@@ -32,6 +32,45 @@ def test_log_rules_for_tools():
     assert log_signal([resolution], [], FailedStage.INSTALL).category == C.DEPENDENCY_FAILURE
 
 
+def test_rules_on_real_mined_log_lines():
+    # Verbatim lines from the mined dataset (fastapi, black, pip, tox, pydantic, click, rich).
+    real = {
+        "Coverage failure: total of 99 is less than fail-under=100": C.COVERAGE_FAILURE,
+        "Please add '(#5247)' change line to CHANGES.md (or if appropriate, ask a "
+        "maintainer to add the 'ci: skip news' label)": C.POLICY_CHECK_FAILURE,
+        "##[error]The 'PSF Code of Conduct' checkbox in the PR checklist must be checked.": (
+            C.POLICY_CHECK_FAILURE
+        ),
+        "src/tox/session/cmd/run/common.py:76:25: warning[deprecated] The function "
+        "`url2pathname` is deprecated": C.TYPE_ERROR,
+        "##[error]The operation was aborted due to timeout": C.NETWORK_FAILURE,
+        "##[error]Unable to locate executable file: poetry.": C.ENVIRONMENT_FAILURE,
+        "yamlfmt..................................................................Failed": (
+            C.FORMAT_FAILURE
+        ),
+        "fix end of files.........................................................Failed": (
+            C.FORMAT_FAILURE
+        ),
+        "Found 1 error (1 fixed, 0 remaining).": C.LINT_FAILURE,
+    }
+    for line, expected in real.items():
+        assert log_signal([line], [], FailedStage.OTHER).category == expected, line
+
+
+def test_mypy_summary_is_a_type_error_not_lint():
+    line = "Found 2 errors in 1 file (checked 3 source files)"
+    assert log_signal([line], [], FailedStage.LINT).category == C.TYPE_ERROR
+
+
+def test_generic_hook_failure_is_only_a_fallback():
+    hook = "check-json...............................................................Failed"
+    assert log_signal([hook], [], FailedStage.OTHER) == Signal(
+        C.LINT_FAILURE, "precommit_hook_failed"
+    )
+    mypy_hook = "mypy.....................................................................Failed"
+    assert log_signal([mypy_hook], [], FailedStage.OTHER).category == C.TYPE_ERROR
+
+
 def test_stage_fallback_and_unknown():
     assert log_signal(["exit 1"], [], FailedStage.LINT) == Signal(
         C.LINT_FAILURE, "stage_fallback:lint"
@@ -81,6 +120,15 @@ def test_noqa_and_type_only_changes():
         "from typing import Any\n\ndef f(x: Any) -> Any:\n    return x\n",
     )
     assert fix_signal("matched", ["a.py"], "", [typed]).category == C.TYPE_ERROR
+
+
+def test_coverage_pragma_is_a_coverage_fix_not_formatting():
+    change = PyFileChange(
+        "a.py",
+        "if x:\n    run()\n",
+        "if x:  # pragma: no cover\n    run()\n",
+    )
+    assert fix_signal("matched", ["a.py"], "", [change]).category == C.COVERAGE_FAILURE
 
 
 def test_semantic_source_and_test_only_changes():
@@ -167,6 +215,15 @@ def test_unknown_log_with_outside_cause_fix_takes_fix_category():
         "medium",
         "auto_verified",
     )
+
+
+def test_policy_check_passing_on_same_code_is_not_flaky():
+    # Real false positive: black's changelog check failed, then passed on the same commit
+    # after a maintainer added a label. Nothing non-deterministic happened.
+    d = combine(
+        Signal(C.POLICY_CHECK_FAILURE, "policy_check"), fix_signal("flaky_rerun", [], "", [])
+    )
+    assert (d.category, d.status) == (C.POLICY_CHECK_FAILURE, "needs_review")
 
 
 def test_conflict_goes_to_review():

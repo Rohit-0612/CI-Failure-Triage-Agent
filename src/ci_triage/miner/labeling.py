@@ -43,6 +43,13 @@ _LOG_RULES: tuple[tuple[str, FailureCategory, re.Pattern[str]], ...] = tuple(
             r"Invalid workflow file|Unable to resolve action|Can't find 'action\.ya?ml'",
         ),
         (
+            # PR-metadata gates (changelog entry, PR template checklist, labels). Not code.
+            "policy_check",
+            C.POLICY_CHECK_FAILURE,
+            r"change line to CHANGES|changelog (entry|fragment)|news (entry|fragment)"
+            r"|PR checklist|checkbox in the PR|in the pull request body|'ci: skip news'",
+        ),
+        (
             "docker",
             C.DOCKER_FAILURE,
             r"failed to solve:|docker: Error response from daemon"
@@ -67,12 +74,14 @@ _LOG_RULES: tuple[tuple[str, FailureCategory, re.Pattern[str]], ...] = tuple(
             C.NETWORK_FAILURE,
             r"Temporary failure in name resolution|Could not resolve host|ECONNRESET"
             r"|Connection reset by peer|Max retries exceeded with url|RemoteDisconnected"
-            r"|\b50[234] (Service Unavailable|Bad Gateway|Gateway Time-?out)",
+            r"|\b50[234] (Service Unavailable|Bad Gateway|Gateway Time-?out)"
+            r"|The operation was aborted due to timeout|Read timed out",
         ),
         (
             "environment",
             C.ENVIRONMENT_FAILURE,
             r"No space left on device|\bMemoryError\b|Segmentation fault|command not found"
+            r"|Unable to locate executable file"
             r"|The runner has received a shutdown signal|lost communication with the server",
         ),
         (
@@ -84,13 +93,16 @@ _LOG_RULES: tuple[tuple[str, FailureCategory, re.Pattern[str]], ...] = tuple(
             "formatter",
             C.FORMAT_FAILURE,
             r"would reformat|files? would be reformatted|Imports are incorrectly sorted"
-            r"|(ruff[- ]format|black|isort|trailing[- ]whitespace|end[- ]of[- ]file[- ]fixer"
-            r"|mixed[- ]line[- ]ending|prettier)\b.*\.{3,}\s*Failed",
+            r"|(ruff[- ]format|black|isort|trailing[- ]whitespace|end[- ]of[- ]files?"
+            r"|mixed[- ]line[- ]ending|prettier|yamlfmt|taplo|pyproject-fmt|blacken-docs)"
+            r"\b.*\.{3,}\s*Failed",
         ),
         (
             "linter",
             C.LINT_FAILURE,
-            r"^Found \d+ errors?\.|^\S+\.pyi?:\d+:\d+: [A-Z]{1,4}\d{2,4}\b"
+            # ruff summaries: "Found 1 error." / "Found 1 error (1 fixed, 0 remaining)."
+            # (mypy's "Found 2 errors in 1 file" must NOT match; it is a type error.)
+            r"^Found \d+ errors?(\.| \(\d+ fixed)|^\S+\.pyi?:\d+:\d+: [A-Z]{1,4}\d{2,4}\b"
             r"|Your code has been rated at"
             r"|(ruff|ruff-check|flake8|pylint|codespell|pyupgrade|typos|zizmor)\b.*\.{3,}\s*Failed",
         ),
@@ -98,7 +110,14 @@ _LOG_RULES: tuple[tuple[str, FailureCategory, re.Pattern[str]], ...] = tuple(
             "type_checker",
             C.TYPE_ERROR,
             r"^\S+\.pyi?:\d+(:\d+)?: error: .*\[[\w-]+\]\s*$|Found \d+ errors? in \d+ files?"
-            r"|(mypy|pyright|pytype)\b.*\.{3,}\s*Failed|- error: .*\(report\w+\)",
+            r"|^\S+\.pyi?:\d+:\d+: (error|warning)\[[\w-]+\]"  # ty (Astral)
+            r"|(mypy|pyright|pytype|ty check)\b.*\.{3,}\s*Failed|- error: .*\(report\w+\)",
+        ),
+        (
+            "coverage_threshold",
+            C.COVERAGE_FAILURE,
+            r"Coverage failure: total of|Required test coverage of [\d.]+% not reached"
+            r"|FAIL Required test coverage",
         ),
         (
             "build",
@@ -114,6 +133,12 @@ _LOG_RULES: tuple[tuple[str, FailureCategory, re.Pattern[str]], ...] = tuple(
             r"|short test summary info",
         ),
     )
+)
+
+# Generic patterns, used only when no specific rule matched: they say *that* a tool
+# failed but not *which kind* of failure, so they must never outrank a specific rule.
+_FALLBACK_LOG_RULES: tuple[tuple[str, FailureCategory, re.Pattern[str]], ...] = (
+    ("precommit_hook_failed", C.LINT_FAILURE, re.compile(r"^[\w .:/()-]+?\.{4,}\s*Failed$")),
 )
 
 _STAGE_FALLBACK = {
@@ -133,17 +158,20 @@ class Signal:
 
 
 def log_signal(lines: list[str], failing_tests: list[str], stage: FailedStage) -> Signal:
+    stripped = [line.strip() for line in lines]
     matched: dict[FailureCategory, str] = {}
-    for line in lines:
-        stripped = line.strip()
+    for line in stripped:
         for rule, category, pattern in _LOG_RULES:
-            if category not in matched and pattern.search(stripped):
+            if category not in matched and pattern.search(line):
                 matched[category] = rule
     if failing_tests:
         matched.setdefault(C.TEST_FAILURE, "pytest_failed_tests")
     if matched:
         primary = pick_primary(matched)
         return Signal(primary, matched[primary])
+    for rule, category, pattern in _FALLBACK_LOG_RULES:
+        if any(pattern.search(line) for line in stripped):
+            return Signal(category, rule)
     if stage in _STAGE_FALLBACK:
         return Signal(_STAGE_FALLBACK[stage], f"stage_fallback:{stage}")
     return Signal(C.UNKNOWN, "no_rule_matched")
@@ -192,8 +220,11 @@ _FLAKY_COMPAT = frozenset(
 )  # fmt: skip
 _CODE_COMPAT = frozenset(
     {C.TEST_FAILURE, C.IMPORT_ERROR, C.SYNTAX_ERROR, C.TYPE_ERROR, C.LINT_FAILURE,
-     C.FORMAT_FAILURE, C.BUILD_FAILURE, C.CONFIGURATION_ERROR, C.UNKNOWN}
+     C.FORMAT_FAILURE, C.BUILD_FAILURE, C.CONFIGURATION_ERROR, C.COVERAGE_FAILURE, C.UNKNOWN}
 )  # fmt: skip
+# A policy check (changelog entry, PR checklist) is resolved by editing PR metadata, so
+# no code change and no "same code passed later" may ever confirm or override it.
+_NEVER_FROM_FIX = frozenset({C.FLAKY, C.POLICY_CHECK_FAILURE})
 
 
 def fix_signal(
@@ -209,7 +240,7 @@ def fix_signal(
     if kinds == {"dep"} or (kinds == {"dep", "config"} and _has_dep_change(changed)):
         return FixSignal(
             C.DEPENDENCY_FAILURE,
-            ALL - {C.SYNTAX_ERROR, C.FORMAT_FAILURE, C.CI_CONFIGURATION_FAILURE, C.FLAKY},
+            ALL - {C.SYNTAX_ERROR, C.FORMAT_FAILURE, C.CI_CONFIGURATION_FAILURE} - _NEVER_FROM_FIX,
             True,
             False,
             "fix_changes_only_dependencies",
@@ -217,7 +248,9 @@ def fix_signal(
     if kinds == {"ci"}:
         return FixSignal(
             C.CI_CONFIGURATION_FAILURE,
-            ALL - {C.SYNTAX_ERROR, C.FORMAT_FAILURE, C.LINT_FAILURE, C.TYPE_ERROR, C.FLAKY},
+            ALL
+            - {C.SYNTAX_ERROR, C.FORMAT_FAILURE, C.LINT_FAILURE, C.TYPE_ERROR}
+            - _NEVER_FROM_FIX,
             True,
             False,
             "fix_changes_only_ci_workflows",
@@ -257,10 +290,15 @@ def fix_signal(
                 C.TYPE_ERROR, frozenset({C.TYPE_ERROR, C.LINT_FAILURE, C.UNKNOWN}),
                 False, False, "fix_changes_only_type_annotations",
             )  # fmt: skip
+        if py_kind == "coverage":
+            return FixSignal(
+                C.COVERAGE_FAILURE, frozenset({C.COVERAGE_FAILURE, C.TEST_FAILURE, C.UNKNOWN}),
+                False, False, "fix_adds_coverage_pragmas_only",
+            )  # fmt: skip
         if kinds == {"test"}:
             return FixSignal(C.TEST_FAILURE, _CODE_COMPAT, False, False, "fix_changes_only_tests")
         return FixSignal(None, _CODE_COMPAT, False, False, "fix_changes_source_code")
-    return FixSignal(None, ALL - {C.FLAKY}, False, False, "fix_mixed_change_kinds")
+    return FixSignal(None, ALL - _NEVER_FROM_FIX, False, False, "fix_mixed_change_kinds")
 
 
 # ----------------------------------------------------------------------------- combine
@@ -350,16 +388,14 @@ def _changed_lines_by_file(diff: str) -> dict[str, list[str]]:
     return changed
 
 
+# Weakest to strongest change; a set of per-file kinds reduces to its strongest member.
+_PY_KIND_ORDER = ("format", "noqa", "coverage", "types", "semantic")
+
+
 def _python_change_kind(changes: list[PyFileChange]) -> str:
-    """format | noqa | types | semantic, over all changed Python files."""
+    """format | noqa | coverage | types | semantic, over all changed Python files."""
     kinds = {_one_python_change(c) for c in changes}
-    if kinds == {"format"}:
-        return "format"
-    if kinds <= {"format", "noqa"}:
-        return "noqa"
-    if kinds <= {"format", "noqa", "types"}:
-        return "types"
-    return "semantic"
+    return max(kinds, key=_PY_KIND_ORDER.index)
 
 
 def _one_python_change(change: PyFileChange) -> str:
@@ -374,6 +410,8 @@ def _one_python_change(change: PyFileChange) -> str:
         text = " ".join(added)
         if "type: ignore" in text or "pyright: ignore" in text:
             return "types"
+        if "pragma: no cover" in text:
+            return "coverage"
         if "noqa" in text or "pylint: disable" in text:
             return "noqa"
         return "format"
