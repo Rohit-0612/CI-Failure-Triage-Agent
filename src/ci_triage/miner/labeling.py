@@ -22,6 +22,7 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Literal
 
+from ci_triage.paths import is_doc_path
 from ci_triage.taxonomy import FailedStage, FailureCategory, pick_primary
 
 C = FailureCategory
@@ -208,7 +209,6 @@ _CONFIG_FILE_RE = re.compile(
     r"|\.pre-commit-config\.yaml|noxfile\.py|\.coveragerc|\.?pylintrc|Makefile|codecov\.ya?ml)$"
 )
 _DOCKER_FILE_RE = re.compile(r"(^|/)(Dockerfile[^/]*|[^/]*\.dockerfile|docker-compose[^/]*)$")
-_DOC_FILE_RE = re.compile(r"(^docs?/|\.(md|rst)$|(^|/)(CHANGES|CHANGELOG|HISTORY|NEWS)[^/]*$)")
 _TEST_FILE_RE = re.compile(
     r"(^|/)(tests?|testing)/|(^|/)(test_[^/]*|[^/]*_test)\.py$|conftest\.py$"
 )
@@ -349,14 +349,14 @@ def combine(log: Signal, fix: FixSignal) -> LabelDecision:
 
 
 def is_doc_file(path: str) -> bool:
-    return bool(_DOC_FILE_RE.search(path))
+    return is_doc_path(path)
 
 
 def _file_kind(path: str, changed_lines: list[str]) -> str:
     name = path.rsplit("/", 1)[-1]
     if path.startswith(".github/"):
         return "ci"
-    if _DOC_FILE_RE.search(path):
+    if is_doc_path(path):
         return "doc"
     if _DEP_FILE_RE.search(path):
         return "dep"

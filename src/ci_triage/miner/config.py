@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -11,6 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 class MinerSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    # dev: cases we inspected while building rules. test: held-out cases from repos that
+    # were never looked at, so evaluation numbers are not tuned to the data (ADR-018).
+    split: Literal["dev", "test"] = "dev"
     repos: list[str] = Field(min_length=1)
     events: list[str] = ["push", "pull_request"]
     # Actions logs are deleted after ~90 days by default; stay safely inside that.
@@ -39,10 +43,11 @@ class MinerSettings(BaseModel):
 
     @property
     def processed_dir(self) -> Path:
-        return self.data_dir / "processed"
+        return self.data_dir / "processed" / self.split
 
     @property
     def raw_logs_dir(self) -> Path:
+        # Shared by all splits: case ids are unique, and logs are raw evidence only.
         return self.data_dir / "raw" / "logs"
 
     @property

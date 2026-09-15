@@ -1,0 +1,28 @@
+# Held-out TEST split (ADR-018). These repositories were in the original verified list
+# but were never mined or inspected while the labeling and baseline rules were written.
+# Do not tune rules on data/processed/test/ - evaluate on it once rules are frozen.
+# Usage: python -m ci_triage.miner --config data/repos_test.yaml mine
+
+split: test
+target_cases: 25
+max_cases_per_repo: 4
+max_flaky_cases: 5
+lookback_days: 80
+events: [push, pull_request]
+
+repos:
+  - scrapy/scrapy
+  - httpie/cli
+  - python/mypy
+  - pylint-dev/pylint
+  - pypa/setuptools
+  - jazzband/pip-tools
+  - mkdocs/mkdocs
+  - Kludex/uvicorn
+  - sphinx-doc/sphinx
+  - beetbox/beets
+  - ipython/ipython
+  - networkx/networkx
+  - python-attrs/attrs
+  - aio-libs/aiohttp
+  - celery/celery

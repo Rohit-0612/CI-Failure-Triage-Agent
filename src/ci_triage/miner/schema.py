@@ -145,6 +145,20 @@ class Labels(_Model):
     reviewer_notes: str | None = None
 
 
+class CaseView(_Model):
+    """What an investigator (baseline or agent) is given: failure-time information only.
+
+    There is no `ground_truth` or `labels` field, so a system under evaluation cannot
+    read the answer even by accident.
+    """
+
+    case_id: str
+    repo: RepoInfo
+    run: RunMeta
+    failure: FailedJob
+    input: CaseInput
+
+
 class CaseRecord(_Model):
     case_id: str
     schema_version: str = SCHEMA_VERSION
@@ -155,6 +169,15 @@ class CaseRecord(_Model):
     input: CaseInput
     ground_truth: GroundTruth
     labels: Labels
+
+    def visible(self) -> CaseView:
+        return CaseView(
+            case_id=self.case_id,
+            repo=self.repo,
+            run=self.run,
+            failure=self.failure,
+            input=self.input,
+        )
 
     @model_validator(mode="after")
     def _no_fix_leak_into_input(self) -> CaseRecord:

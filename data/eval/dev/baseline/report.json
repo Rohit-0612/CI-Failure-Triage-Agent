@@ -1,0 +1,1116 @@
+{
+  "system": "rule_baseline_v1",
+  "split": "dev",
+  "cases": 50,
+  "errors": 0,
+  "category_accuracy": {
+    "all": {
+      "n": 50,
+      "hits": 47,
+      "rate": 0.94,
+      "ci95": [
+        0.838,
+        0.979
+      ],
+      "confusion": {
+        "BUILD_FAILURE": {
+          "BUILD_FAILURE": 1
+        },
+        "CI_CONFIGURATION_FAILURE": {
+          "CI_CONFIGURATION_FAILURE": 1,
+          "ENVIRONMENT_FAILURE": 1,
+          "NETWORK_FAILURE": 1
+        },
+        "COVERAGE_FAILURE": {
+          "COVERAGE_FAILURE": 5
+        },
+        "DEPENDENCY_FAILURE": {
+          "DEPENDENCY_FAILURE": 4
+        },
+        "FORMAT_FAILURE": {
+          "FORMAT_FAILURE": 9
+        },
+        "LINT_FAILURE": {
+          "LINT_FAILURE": 5
+        },
+        "NETWORK_FAILURE": {
+          "NETWORK_FAILURE": 1
+        },
+        "POLICY_CHECK_FAILURE": {
+          "POLICY_CHECK_FAILURE": 7
+        },
+        "SYNTAX_ERROR": {
+          "SYNTAX_ERROR": 1
+        },
+        "TEST_FAILURE": {
+          "TEST_FAILURE": 7,
+          "SYNTAX_ERROR": 1
+        },
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 6
+        }
+      }
+    },
+    "auto_verified": {
+      "n": 32,
+      "hits": 29,
+      "rate": 0.906,
+      "ci95": [
+        0.758,
+        0.968
+      ],
+      "confusion": {
+        "CI_CONFIGURATION_FAILURE": {
+          "CI_CONFIGURATION_FAILURE": 1,
+          "ENVIRONMENT_FAILURE": 1,
+          "NETWORK_FAILURE": 1
+        },
+        "COVERAGE_FAILURE": {
+          "COVERAGE_FAILURE": 5
+        },
+        "FORMAT_FAILURE": {
+          "FORMAT_FAILURE": 8
+        },
+        "LINT_FAILURE": {
+          "LINT_FAILURE": 4
+        },
+        "TEST_FAILURE": {
+          "TEST_FAILURE": 6,
+          "SYNTAX_ERROR": 1
+        },
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 5
+        }
+      }
+    },
+    "needs_review": {
+      "n": 18,
+      "hits": 18,
+      "rate": 1.0,
+      "ci95": [
+        0.824,
+        1.0
+      ],
+      "confusion": {
+        "BUILD_FAILURE": {
+          "BUILD_FAILURE": 1
+        },
+        "DEPENDENCY_FAILURE": {
+          "DEPENDENCY_FAILURE": 4
+        },
+        "FORMAT_FAILURE": {
+          "FORMAT_FAILURE": 1
+        },
+        "LINT_FAILURE": {
+          "LINT_FAILURE": 1
+        },
+        "NETWORK_FAILURE": {
+          "NETWORK_FAILURE": 1
+        },
+        "POLICY_CHECK_FAILURE": {
+          "POLICY_CHECK_FAILURE": 7
+        },
+        "SYNTAX_ERROR": {
+          "SYNTAX_ERROR": 1
+        },
+        "TEST_FAILURE": {
+          "TEST_FAILURE": 1
+        },
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 1
+        }
+      }
+    }
+  },
+  "abstention_rate": 0.0,
+  "localization": {
+    "n": 42,
+    "hit@1": {
+      "n": 42,
+      "hits": 24,
+      "rate": 0.571,
+      "ci95": [
+        0.422,
+        0.709
+      ]
+    },
+    "hit@3": {
+      "n": 42,
+      "hits": 33,
+      "rate": 0.786,
+      "ci95": [
+        0.641,
+        0.883
+      ]
+    },
+    "mrr": 0.682,
+    "recall@5": 0.808,
+    "excluded": {
+      "fix_status:flaky_rerun": 6,
+      "non_code_category:NETWORK_FAILURE": 1,
+      "non_code_category:POLICY_CHECK_FAILURE": 1
+    }
+  },
+  "evidence_grounding": {
+    "items": 121,
+    "grounded": 121,
+    "rate": 1.0,
+    "cases_with_ungrounded_evidence": 0
+  },
+  "operational": {
+    "latency_ms_mean": 1.113,
+    "latency_ms_p95": 3.763,
+    "tool_calls_total": 0,
+    "llm_calls_total": 0,
+    "cost_usd_total": 0.0
+  },
+  "per_case": [
+    {
+      "case_id": "pydantic__pydantic__33082044287",
+      "gold": "BUILD_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "BUILD_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.3333333333333333,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_schema_gather.py"
+      ],
+      "top_files": [
+        "pydantic-core/src/schema_gather.rs",
+        "pydantic/_internal/_schema_gather.py",
+        "tests/test_schema_gather.py"
+      ]
+    },
+    {
+      "case_id": "pydantic__pydantic__33066070414",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.5,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        ".github/workflows/ci.yml"
+      ],
+      "top_files": [
+        "pydantic-core/tests/test_garbage_collection.py",
+        ".github/workflows/ci.yml",
+        "pydantic-core/tests/validators/test_dataclasses.py"
+      ]
+    },
+    {
+      "case_id": "pydantic__pydantic__33063609427",
+      "gold": "TEST_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "pydantic-core/src/recursion_guard.rs"
+      ],
+      "top_files": [
+        "pydantic-core/python/pydantic_core/core_schema.py",
+        "pydantic-core/src/serializers/type_serializers/frozendict.rs",
+        "pydantic-core/src/validators/frozendict.rs"
+      ]
+    },
+    {
+      "case_id": "pydantic__pydantic__32959966756",
+      "gold": "NETWORK_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "NETWORK_FAILURE",
+      "correct": true
+    },
+    {
+      "case_id": "pallets__flask__30566227095",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_blueprints.py",
+        "tests/test_views.py"
+      ],
+      "top_files": [
+        "tests/test_blueprints.py",
+        "tests/test_views.py",
+        "uv.lock"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__33236247623",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_basic.py"
+      ],
+      "top_files": [
+        "tests/test_basic.py",
+        "src/flask/sansio/scaffold.py",
+        "src/flask/sansio/app.py"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__29883670931",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_basic.py",
+        "tests/test_blueprints.py"
+      ],
+      "top_files": [
+        "tests/test_basic.py",
+        "tests/test_blueprints.py",
+        "src/flask/sansio/app.py"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__29881037146",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 0.6666666666666666
+      },
+      "gold_files": [
+        "src/flask/sansio/app.py",
+        "tests/test_basic.py",
+        "tests/test_blueprints.py"
+      ],
+      "top_files": [
+        "tests/test_blueprints.py",
+        "tests/test_views.py",
+        "tests/test_cli.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34602162027",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/click/core.py",
+        "tests/test_arguments.py",
+        "tests/test_deprecations.py",
+        "tests/test_options.py"
+      ],
+      "top_files": [
+        "src/click/core.py",
+        "tests/test_arguments.py",
+        "tests/test_deprecations.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34458415260",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/click/core.py"
+      ],
+      "top_files": [
+        "src/click/core.py",
+        "src/click/types.py",
+        "tests/test_info_dict.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34216472101",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.5,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/typing/typing_path.py"
+      ],
+      "top_files": [
+        "src/click/types.py",
+        "tests/typing/typing_path.py",
+        "tests/test_types/test_Path.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34144555748",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/click/_termui_impl.py"
+      ],
+      "top_files": [
+        "src/click/_termui_impl.py",
+        "tests/test_termui.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__34727220107",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.2,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_filter_default_cases.py"
+      ],
+      "top_files": [
+        "src/jinja2/sandbox.py",
+        "src/jinja2/_identifier.py",
+        "src/jinja2/runtime.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__33422506702",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/jinja2/utils.py",
+        "tests/test_filters.py"
+      ],
+      "top_files": [
+        "tests/test_filters.py",
+        "src/jinja2/_identifier.py",
+        "src/jinja2/sandbox.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__33386024559",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.5,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_tests.py"
+      ],
+      "top_files": [
+        "src/jinja2/tests.py",
+        "tests/test_tests.py",
+        "tests/test_api.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__33192404723",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_filters.py"
+      ],
+      "top_files": [
+        "tests/test_filters.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__32588590937",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/werkzeug/routing/matcher.py"
+      ],
+      "top_files": [
+        "src/werkzeug/routing/matcher.py",
+        "tests/test_routing.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__32448268750",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.5,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/werkzeug/formparser.py",
+        "tests/test_formparser.py"
+      ],
+      "top_files": [
+        "tests/middleware/test_dispatcher.py",
+        "tests/test_formparser.py",
+        "src/werkzeug/formparser.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__31436830127",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/werkzeug/datastructures/etag.py"
+      ],
+      "top_files": [
+        "src/werkzeug/datastructures/etag.py",
+        "src/werkzeug/http.py",
+        "tests/test_http.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__31365392713",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/werkzeug/routing/matcher.py"
+      ],
+      "top_files": [
+        "src/werkzeug/routing/matcher.py",
+        "tests/test_routing.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34229763670",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "SYNTAX_ERROR",
+      "correct": false,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "testing/code/test_excinfo.py"
+      ],
+      "top_files": [
+        "testing/code/test_excinfo.py",
+        "testing/_py/test_local.py",
+        ".pre-commit-config.yaml"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34831550034",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "src/_pytest/_code/code.py",
+        "src/_pytest/python.py"
+      ],
+      "top_files": [
+        "testing/python/fixtures.py",
+        "testing/test_debugging.py",
+        "testing/_py/test_local.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34187626286",
+      "gold": "SYNTAX_ERROR",
+      "gold_status": "needs_review",
+      "pred": "SYNTAX_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.5,
+        "recall@5": 0.3333333333333333
+      },
+      "gold_files": [
+        "pyproject.toml",
+        "src/_pytest/mark/expression.py",
+        "testing/test_mark_expression.py"
+      ],
+      "top_files": [
+        "src/_pytest/python.py",
+        "src/_pytest/mark/expression.py",
+        "testing/code/test_excinfo.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34036818216",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "testing/test_unittest.py"
+      ],
+      "top_files": [
+        "testing/test_unittest.py",
+        "src/_pytest/python.py",
+        "src/_pytest/unittest.py"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28585552024",
+      "gold": "CI_CONFIGURATION_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "CI_CONFIGURATION_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "top_files": [
+        ".github/workflows/pythonpackage.yml",
+        "Makefile",
+        ".readthedocs.yml"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28386044959",
+      "gold": "CI_CONFIGURATION_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "ENVIRONMENT_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "top_files": [
+        ".github/workflows/pythonpackage.yml"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28385515156",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "rich/syntax.py"
+      ],
+      "top_files": [
+        "rich/syntax.py",
+        "benchmarks/benchmarks.py",
+        "tests/test_syntax.py"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28362378531",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_syntax.py"
+      ],
+      "top_files": [
+        "tests/test_syntax.py",
+        "rich/syntax.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__34682762870",
+      "gold": "COVERAGE_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "COVERAGE_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_staticfiles.py"
+      ],
+      "top_files": [
+        "tests/test_staticfiles.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__34032002422",
+      "gold": "COVERAGE_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "COVERAGE_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/middleware/test_base.py"
+      ],
+      "top_files": [
+        "tests/middleware/test_base.py",
+        "starlette/middleware/base.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__33952995268",
+      "gold": "TYPE_ERROR",
+      "gold_status": "needs_review",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "pyproject.toml",
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ],
+      "top_files": [
+        "starlette/middleware/base.py",
+        "uv.lock",
+        "starlette/testclient.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__33862853375",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.25,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_testclient.py"
+      ],
+      "top_files": [
+        "starlette/testclient.py",
+        "tests/test_websockets.py",
+        "tests/test_responses.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34936005539",
+      "gold": "LINT_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_optional_file_list.py"
+      ],
+      "top_files": [
+        "tests/test_optional_file_list.py",
+        "fastapi/dependencies/utils.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34835273060",
+      "gold": "COVERAGE_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "COVERAGE_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "tests/test_query_cookie_header_model_extra_params.py"
+      ],
+      "top_files": [
+        "fastapi/dependencies/utils.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34706009509",
+      "gold": "COVERAGE_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "COVERAGE_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.5,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "top_files": [
+        "tests/test_stream_annotated.py",
+        "fastapi/dependencies/utils.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34367079386",
+      "gold": "COVERAGE_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "COVERAGE_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_dependency_overrides_rebuild.py"
+      ],
+      "top_files": [
+        "tests/test_dependency_overrides_rebuild.py",
+        "fastapi/dependencies/utils.py"
+      ]
+    },
+    {
+      "case_id": "psf__black__29871428477",
+      "gold": "POLICY_CHECK_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "POLICY_CHECK_FAILURE",
+      "correct": true
+    },
+    {
+      "case_id": "psf__black__33696871532",
+      "gold": "POLICY_CHECK_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "POLICY_CHECK_FAILURE",
+      "correct": true
+    },
+    {
+      "case_id": "psf__black__33354168731",
+      "gold": "POLICY_CHECK_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "POLICY_CHECK_FAILURE",
+      "correct": true
+    },
+    {
+      "case_id": "psf__requests__29765540818",
+      "gold": "CI_CONFIGURATION_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "NETWORK_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        ".github/workflows/codeql-analysis.yml"
+      ],
+      "top_files": [
+        "tests/test_requests.py",
+        "src/requests/adapters.py",
+        "src/requests/api.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pip__34524072723",
+      "gold": "POLICY_CHECK_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "POLICY_CHECK_FAILURE",
+      "correct": true
+    },
+    {
+      "case_id": "pypa__pip__34491528981",
+      "gold": "POLICY_CHECK_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "POLICY_CHECK_FAILURE",
+      "correct": true
+    },
+    {
+      "case_id": "pypa__pip__34111503185",
+      "gold": "POLICY_CHECK_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "POLICY_CHECK_FAILURE",
+      "correct": true
+    },
+    {
+      "case_id": "pypa__pip__34001199872",
+      "gold": "POLICY_CHECK_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "POLICY_CHECK_FAILURE",
+      "correct": true
+    },
+    {
+      "case_id": "pypa__pipx__29164805804",
+      "gold": "DEPENDENCY_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "DEPENDENCY_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "src/pipx/commands/interpreter.py",
+        "tests/test_standalone_interpreter.py"
+      ],
+      "top_files": [
+        "tests/test_runpip.py",
+        "src/pipx/commands/environment.py",
+        "tests/test_interpreter.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pipx__29308101290",
+      "gold": "DEPENDENCY_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "DEPENDENCY_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.2,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/pipx/script.py"
+      ],
+      "top_files": [
+        "tests/test_install.py",
+        "tests/test_upgrade.py",
+        "tests/test_reinstall.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pipx__31639702870",
+      "gold": "DEPENDENCY_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "DEPENDENCY_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 0.4444444444444444
+      },
+      "gold_files": [
+        "src/pipx/standalone_python.py",
+        "testdata/standalone_python_index_20250818.json",
+        "testdata/standalone_python_index_20250828.json",
+        "tests/conftest.py",
+        "tests/helpers.py",
+        "tests/test_install.py",
+        "tests/test_interpreter.py",
+        "tests/test_list.py",
+        "tests/test_standalone_interpreter.py"
+      ],
+      "top_files": [
+        "tests/test_install.py",
+        "tests/test_interpreter.py",
+        "tests/test_list.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pipx__33240510369",
+      "gold": "DEPENDENCY_FAILURE",
+      "gold_status": "needs_review",
+      "pred": "DEPENDENCY_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.3333333333333333,
+        "recall@5": 0.5
+      },
+      "gold_files": [
+        "tests/conftest.py",
+        "tests/test_uninject.py"
+      ],
+      "top_files": [
+        "tests/test_install.py",
+        "tests/test_main.py",
+        "tests/test_uninject.py"
+      ]
+    },
+    {
+      "case_id": "tox-dev__tox__34145727089",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "typestubs/nturl2path.pyi"
+      ],
+      "top_files": [
+        "src/tox/execute/api.py",
+        "src/tox/tox_env/api.py",
+        "src/tox/tox_env/python/api.py"
+      ]
+    },
+    {
+      "case_id": "tox-dev__tox__33809230908",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.3333333333333333,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "src/tox/config/source/toml_pyproject.py",
+        "tests/config/source/test_toml_tox.py"
+      ],
+      "top_files": [
+        "src/tox/session/cmd/run/common.py",
+        "src/tox/tox_env/python/pip/req/util.py",
+        "tests/config/source/test_toml_tox.py"
+      ]
+    }
+  ]
+}
