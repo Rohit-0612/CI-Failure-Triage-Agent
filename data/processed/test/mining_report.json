@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-09-15T13:49:31.484486+00:00",
+  "total_cases": 25,
+  "flaky_cases": 0,
+  "cases_per_repo": {
+    "scrapy/scrapy": 4,
+    "httpie/cli": 2,
+    "python/mypy": 4,
+    "pylint-dev/pylint": 4,
+    "pypa/setuptools": 4,
+    "jazzband/pip-tools": 4,
+    "mkdocs/mkdocs": 3
+  },
+  "funnel_this_run": {
+    "failed_runs_seen": 809,
+    "streaks_examined": 118,
+    "already_mined": 71,
+    "failed_runs_skipped_event": 93,
+    "accepted": 16,
+    "rejected:no_green_found": 26,
+    "rejected:fix_ambiguous": 5
+  },
+  "api_requests_this_run": 145,
+  "api_cache_hits_this_run": 77,
+  "settings": {
+    "split": "test",
+    "events": [
+      "push",
+      "pull_request"
+    ],
+    "lookback_days": 80,
+    "target_cases": 25,
+    "max_cases_per_repo": 4,
+    "max_flaky_cases": 5,
+    "max_keys_per_repo": 60,
+    "max_fix_window_commits": 5,
+    "max_log_excerpt_chars": 20000,
+    "max_error_lines": 150,
+    "max_diff_chars": 40000,
+    "max_file_chars": 12000,
+    "max_relevant_files": 6,
+    "data_dir": "data"
+  }
+}

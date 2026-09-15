@@ -1,0 +1,628 @@
+{
+  "system": "rule_baseline_v1",
+  "split": "test",
+  "cases": 25,
+  "errors": 0,
+  "category_accuracy": {
+    "all": {
+      "n": 25,
+      "hits": 20,
+      "rate": 0.8,
+      "ci95": [
+        0.609,
+        0.911
+      ],
+      "confusion": {
+        "BUILD_FAILURE": {
+          "COVERAGE_FAILURE": 2
+        },
+        "CI_CONFIGURATION_FAILURE": {
+          "BUILD_FAILURE": 1
+        },
+        "LINT_FAILURE": {
+          "LINT_FAILURE": 5
+        },
+        "TEST_FAILURE": {
+          "TEST_FAILURE": 7,
+          "COVERAGE_FAILURE": 1
+        },
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 4
+        },
+        "UNKNOWN": {
+          "UNKNOWN": 4,
+          "COVERAGE_FAILURE": 1
+        }
+      }
+    },
+    "auto_verified": {
+      "n": 19,
+      "hits": 15,
+      "rate": 0.789,
+      "ci95": [
+        0.567,
+        0.915
+      ],
+      "confusion": {
+        "BUILD_FAILURE": {
+          "COVERAGE_FAILURE": 2
+        },
+        "CI_CONFIGURATION_FAILURE": {
+          "BUILD_FAILURE": 1
+        },
+        "LINT_FAILURE": {
+          "LINT_FAILURE": 5
+        },
+        "TEST_FAILURE": {
+          "TEST_FAILURE": 7,
+          "COVERAGE_FAILURE": 1
+        },
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 3
+        }
+      }
+    },
+    "needs_review": {
+      "n": 6,
+      "hits": 5,
+      "rate": 0.833,
+      "ci95": [
+        0.436,
+        0.97
+      ],
+      "confusion": {
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 1
+        },
+        "UNKNOWN": {
+          "UNKNOWN": 4,
+          "COVERAGE_FAILURE": 1
+        }
+      }
+    }
+  },
+  "abstention_rate": 0.16,
+  "localization": {
+    "n": 23,
+    "hit@1": {
+      "n": 23,
+      "hits": 10,
+      "rate": 0.435,
+      "ci95": [
+        0.256,
+        0.632
+      ]
+    },
+    "hit@3": {
+      "n": 23,
+      "hits": 13,
+      "rate": 0.565,
+      "ci95": [
+        0.368,
+        0.744
+      ]
+    },
+    "mrr": 0.505,
+    "recall@5": 0.486,
+    "excluded": {
+      "fix_changes_only_docs": 2
+    }
+  },
+  "evidence_grounding": {
+    "items": 62,
+    "grounded": 62,
+    "rate": 1.0,
+    "cases_with_ungrounded_evidence": 0
+  },
+  "operational": {
+    "latency_ms_mean": 2.314,
+    "latency_ms_p95": 4.999,
+    "tool_calls_total": 0,
+    "llm_calls_total": 0,
+    "cost_usd_total": 0.0
+  },
+  "per_case": [
+    {
+      "case_id": "scrapy__scrapy__34964635066",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_spidermiddleware_output_chain.py"
+      ],
+      "top_files": [
+        "tests/test_spidermiddleware_output_chain.py",
+        ".github/workflows/codspeed.yml",
+        "conftest.py"
+      ]
+    },
+    {
+      "case_id": "scrapy__scrapy__32370323392",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.5,
+        "recall@5": 0.16666666666666666
+      },
+      "gold_files": [
+        "scrapy/core/scraper.py",
+        "scrapy/crawler.py",
+        "scrapy/utils/defer.py",
+        "tests/AsyncCrawlerProcess/sleeping.py",
+        "tests/CrawlerProcess/sleeping.py",
+        "tests/test_crawler_subprocess.py"
+      ],
+      "top_files": [
+        "tests/test_crawl.py",
+        "tests/test_crawler_subprocess.py",
+        "tests/test_closespider.py"
+      ]
+    },
+    {
+      "case_id": "scrapy__scrapy__34840905945",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_crawler.py"
+      ],
+      "top_files": [
+        "tests/test_crawler.py",
+        "scrapy/crawler.py",
+        "scrapy/utils/log.py"
+      ]
+    },
+    {
+      "case_id": "scrapy__scrapy__32335595074",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "scrapy/utils/defer.py"
+      ],
+      "top_files": [
+        "tests/test_crawler_subprocess.py",
+        "tests/test_downloader_handler_httpx.py",
+        "tests/test_downloadermiddleware_httpcache.py"
+      ]
+    },
+    {
+      "case_id": "httpie__cli__33485749333",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_auth.py"
+      ],
+      "top_files": [
+        "tests/test_auth.py",
+        "setup.cfg"
+      ]
+    },
+    {
+      "case_id": "httpie__cli__33491511851",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_plugins_cli.py"
+      ],
+      "top_files": [
+        "tests/test_plugins_cli.py",
+        "tests/utils/plugins_cli.py"
+      ]
+    },
+    {
+      "case_id": "python__mypy__34817973015",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "mypy/build_worker/worker.py",
+        "mypy/test/testworker.py"
+      ],
+      "top_files": [
+        "mypy/test/testworker.py",
+        "mypy/build_worker/worker.py"
+      ]
+    },
+    {
+      "case_id": "python__mypy__34302312010",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.3333333333333333,
+        "recall@5": 0.5
+      },
+      "gold_files": [
+        "test-data/unit/check-python312.test",
+        "test-data/unit/check-selftype.test"
+      ],
+      "top_files": [
+        "mypy/test/testcheck.py",
+        "mypy/semanal.py",
+        "test-data/unit/check-selftype.test"
+      ]
+    },
+    {
+      "case_id": "python__mypy__34058573442",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "mypy/test/testbuild.py"
+      ],
+      "top_files": [
+        "mypy/test/testbuild.py",
+        "mypy/build.py"
+      ]
+    },
+    {
+      "case_id": "python__mypy__32892142139",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.2,
+        "recall@5": 0.5
+      },
+      "gold_files": [
+        "test-data/unit/check-isinstance.test",
+        "test-data/unit/check-narrowing.test"
+      ],
+      "top_files": [
+        "mypy/test/testcheck.py",
+        "mypy/meet.py",
+        "mypy/test/testsubtypes.py"
+      ]
+    },
+    {
+      "case_id": "pylint-dev__pylint__34711693236",
+      "gold": "UNKNOWN",
+      "gold_status": "needs_review",
+      "pred": "UNKNOWN",
+      "correct": true
+    },
+    {
+      "case_id": "pylint-dev__pylint__28400267457",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "tests/testutils/_primer/test_pyreverse_primer.py"
+      ],
+      "top_files": [
+        ".github/workflows/pyreverse_primer_comment.yaml",
+        ".github/workflows/pyreverse_primer_run_main.yaml",
+        ".github/workflows/pyreverse_primer_run_pr.yaml"
+      ]
+    },
+    {
+      "case_id": "pylint-dev__pylint__34542004858",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 0.5
+      },
+      "gold_files": [
+        "tests/testutils/_primer/test_primer.py",
+        "tests/testutils/_primer/test_pyreverse_primer.py"
+      ],
+      "top_files": [
+        "tests/testutils/_primer/test_pyreverse_primer.py",
+        ".github/workflows/pyreverse_primer_run_pr.yaml",
+        ".github/workflows/pyreverse_primer_comment.yaml"
+      ]
+    },
+    {
+      "case_id": "pylint-dev__pylint__34293586675",
+      "gold": "UNKNOWN",
+      "gold_status": "needs_review",
+      "pred": "UNKNOWN",
+      "correct": true
+    },
+    {
+      "case_id": "pypa__setuptools__28726610932",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "setuptools/command/bdist_egg.py",
+        "setuptools/glob.py",
+        "setuptools/tests/config/test_apply_pyprojecttoml.py"
+      ],
+      "top_files": [
+        "build_with_distutils_stubs.py",
+        "setuptools/command/build_py.py",
+        "mypy.ini"
+      ]
+    },
+    {
+      "case_id": "pypa__setuptools__34529467000",
+      "gold": "TYPE_ERROR",
+      "gold_status": "needs_review",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "setuptools/command/build_ext.py",
+        "setuptools/command/install.py",
+        "setuptools/config/setupcfg.py",
+        "setuptools/discovery.py"
+      ],
+      "top_files": [
+        "setuptools/_distutils/_dataclass.py",
+        "setuptools/_distutils/archive_util.py",
+        "setuptools/_distutils/command/bdist_rpm.py"
+      ]
+    },
+    {
+      "case_id": "pypa__setuptools__34129223087",
+      "gold": "UNKNOWN",
+      "gold_status": "needs_review",
+      "pred": "COVERAGE_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "setuptools/archive_util.py"
+      ],
+      "top_files": []
+    },
+    {
+      "case_id": "pypa__setuptools__34129182629",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.125,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "setuptools/archive_util.py"
+      ],
+      "top_files": [
+        "setuptools/tests/test_bdist_wheel.py",
+        "setuptools/tests/test_build_meta.py",
+        "setuptools/tests/test_config_discovery.py"
+      ]
+    },
+    {
+      "case_id": "jazzband__pip-tools__32624394390",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 0.5
+      },
+      "gold_files": [
+        "tests/constants.py",
+        "tests/test_cli_compile.py"
+      ],
+      "top_files": [
+        "tests/test_cli_compile.py",
+        "tests/test_cli_sync.py",
+        "tests/test_minimal_upgrade.py"
+      ]
+    },
+    {
+      "case_id": "jazzband__pip-tools__29291399160",
+      "gold": "BUILD_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "COVERAGE_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        ".pre-commit-config.yaml"
+      ],
+      "top_files": [
+        "tests/test_cli_compile.py",
+        "tests/test_minimal_upgrade.py",
+        "tests/test_resolver.py"
+      ]
+    },
+    {
+      "case_id": "jazzband__pip-tools__31814577524",
+      "gold": "BUILD_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "COVERAGE_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.125,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        ".coveragerc"
+      ],
+      "top_files": [
+        "tests/test_cli_compile.py",
+        "tests/test_minimal_upgrade.py",
+        "tests/_plugins/_coverage/piptools_coverage.py"
+      ]
+    },
+    {
+      "case_id": "jazzband__pip-tools__30579914116",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "COVERAGE_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.3333333333333333,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_repository_pypi.py"
+      ],
+      "top_files": [
+        "piptools/repositories/pypi.py",
+        "tests/test_cli_compile.py",
+        "tests/test_repository_pypi.py"
+      ]
+    },
+    {
+      "case_id": "mkdocs__mkdocs__31327867787",
+      "gold": "CI_CONFIGURATION_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "BUILD_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        ".github/workflows/ci.yml"
+      ],
+      "top_files": [
+        "mkdocs/tests/config/config_options_tests.py",
+        "mkdocs/tests/cli_tests.py",
+        "mkdocs/commands/serve.py"
+      ]
+    },
+    {
+      "case_id": "mkdocs__mkdocs__31301762605",
+      "gold": "UNKNOWN",
+      "gold_status": "needs_review",
+      "pred": "UNKNOWN",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "mkdocs/tests/cli_tests.py"
+      ],
+      "top_files": [
+        "mkdocs/tests/cli_tests.py",
+        "mkdocs/commands/serve.py"
+      ]
+    },
+    {
+      "case_id": "mkdocs__mkdocs__29803497336",
+      "gold": "UNKNOWN",
+      "gold_status": "needs_review",
+      "pred": "UNKNOWN",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "mkdocs/tests/build_tests.py"
+      ],
+      "top_files": [
+        "mkdocs/tests/build_tests.py",
+        "mkdocs/structure/pages.py"
+      ]
+    }
+  ]
+}
