@@ -104,6 +104,23 @@ def test_fetch_skips_unreachable_sha(tmp_path, history):
     assert repo.fetch([s["red"], ghost]) == {s["red"]}
 
 
+def _git_version() -> tuple[int, int]:
+    out = subprocess.run(["git", "--version"], capture_output=True, text=True).stdout
+    major, minor = out.split()[2].split(".")[:2]
+    return int(major), int(minor)
+
+
+@pytest.mark.skipif(_git_version() < (2, 44), reason="GIT_NO_LAZY_FETCH needs git >= 2.44")
+def test_has_commit_never_downloads_missing_objects(tmp_path, history):
+    """BUG-005: an existence check used to lazily fetch the whole history of the SHA."""
+    src, s = history
+    repo = GitRepo.open_or_init(tmp_path, "o/r", remote_url=src.as_uri())
+    assert repo.fetch([s["red"]]) == {s["red"]}  # now a partial clone with a promisor
+    assert repo.has_commit(s["fix"]) is False  # exists upstream, but must not be fetched
+    assert repo.has_commit(s["fix"]) is False  # ...and still is not present locally
+    assert repo.fetch([s["fix"]]) == {s["fix"]}  # explicit fetch still works
+
+
 def test_validate_sha_rejects_non_sha_input():
     with pytest.raises(ValueError):
         validate_sha("HEAD; rm -rf /")

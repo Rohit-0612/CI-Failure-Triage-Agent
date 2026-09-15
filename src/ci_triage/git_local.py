@@ -11,6 +11,7 @@ Only fixed argument lists are passed to git (no shell), and SHAs are validated f
 from __future__ import annotations
 
 import logging
+import os
 import re
 import subprocess
 from dataclasses import dataclass
@@ -95,8 +96,14 @@ class GitRepo:
         )
 
     def has_commit(self, sha: str) -> bool:
+        """Is the commit present locally? Must never download anything (BUG-005).
+
+        In a partial clone, asking for a missing object makes git fetch it lazily from the
+        promisor remote, without --depth, i.e. the commit's whole history. For a large
+        repo that ran until our 180 s timeout on every new SHA.
+        """
         try:
-            self._git("cat-file", "-e", f"{sha}^{{commit}}")
+            self._git("cat-file", "-e", f"{sha}^{{commit}}", lazy_fetch=False)
             return True
         except GitError:
             return False
@@ -182,14 +189,20 @@ class GitRepo:
 
     # ------------------------------------------------------------------ plumbing
 
-    def _git(self, *args: str) -> str:
-        return self._git_bytes(*args).decode("utf-8", errors="replace")
+    def _git(self, *args: str, lazy_fetch: bool = True) -> str:
+        return self._git_bytes(*args, lazy_fetch=lazy_fetch).decode("utf-8", errors="replace")
 
-    def _git_bytes(self, *args: str) -> bytes:
+    def _git_bytes(self, *args: str, lazy_fetch: bool = True) -> bytes:
+        """Run git with a fixed argument list (no shell).
+
+        lazy_fetch=False sets GIT_NO_LAZY_FETCH (git >= 2.44): missing objects fail fast
+        instead of being downloaded. Blob reads for diffs keep lazy fetching on purpose.
+        """
         cmd = ["git", "-C", str(self.path), *args]
+        env = None if lazy_fetch else {**os.environ, "GIT_NO_LAZY_FETCH": "1"}
         try:
             proc = subprocess.run(
-                cmd, capture_output=True, timeout=GIT_TIMEOUT_SECONDS, check=False
+                cmd, capture_output=True, timeout=GIT_TIMEOUT_SECONDS, check=False, env=env
             )
         except subprocess.TimeoutExpired as exc:
             raise GitError(f"git {args[0]} timed out") from exc
