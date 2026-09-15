@@ -277,20 +277,29 @@ class LabelDecision:
     rule: str
 
 
+def is_weak_log_signal(log: Signal) -> bool:
+    """A stage-name guess is not evidence from the log; no error pattern matched."""
+    return log.rule.startswith("stage_fallback") or log.rule == "no_rule_matched"
+
+
 def combine(log: Signal, fix: FixSignal) -> LabelDecision:
     log_cat = log.category or C.UNKNOWN
+    weak = is_weak_log_signal(log)
     if fix.rule == "fix_mixed_change_kinds":
         # Mixed fixes are consistent with almost anything, so they verify nothing.
         return LabelDecision(log_cat, "low", "needs_review", "fix_too_mixed_to_verify")
     if fix.category is not None and log_cat == fix.category:
-        return LabelDecision(log_cat, "high", "auto_verified", "signals_agree")
+        confidence: LabelConfidence = "medium" if weak else "high"
+        return LabelDecision(log_cat, confidence, "auto_verified", "signals_agree")
     if log_cat in fix.compatible:
         if fix.overrides or (log_cat == C.UNKNOWN and fix.category is not None):
             category = fix.category or log_cat
-            confidence: LabelConfidence = "high" if fix.decisive else "medium"
+            confidence = "high" if fix.decisive else "medium"
             return LabelDecision(category, confidence, "auto_verified", "fix_refines_log")
-        if log_cat == C.UNKNOWN:
-            return LabelDecision(C.UNKNOWN, "low", "needs_review", "no_specific_signal")
+        if weak:
+            # Only a guess from the step name, and the fix does not name a category:
+            # nothing independent confirms the label.
+            return LabelDecision(log_cat, "low", "needs_review", "weak_log_signal")
         return LabelDecision(log_cat, "medium", "auto_verified", "fix_consistent_with_log")
     fallback = log_cat if log_cat != C.UNKNOWN else (fix.category or C.UNKNOWN)
     return LabelDecision(fallback, "low", "needs_review", "signals_conflict")

@@ -128,7 +128,8 @@ class GitHubClient:
             if redirect.status_code == 200:
                 text = redirect.text
             elif location:
-                text = self._request(self._blob_http, location, None, log_path=path).text
+                shown = f"{path} (signed blob redirect)"
+                text = self._request(self._blob_http, location, None, log_path=shown).text
             else:
                 raise GitHubError(redirect.status_code, path, "log redirect without location")
         except NotFoundError:
@@ -154,6 +155,7 @@ class GitHubClient:
         """
         shown = log_path or url
         for attempt in range(self._max_retries + 1):
+            started = time.monotonic()
             try:
                 self.request_count += 1
                 response = http.get(url, params=params)
@@ -164,6 +166,14 @@ class GitHubClient:
                 continue
 
             status = response.status_code
+            # Our own request log: safe path only (never the signed URL or query secrets).
+            logger.info(
+                "GET %s -> %d in %.1fs (attempt %d)",
+                shown,
+                status,
+                time.monotonic() - started,
+                attempt + 1,
+            )
             if status == 200 or (allow_redirect and status in (301, 302, 307)):
                 return response
             if status in (404, 410):

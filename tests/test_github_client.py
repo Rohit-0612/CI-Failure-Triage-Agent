@@ -1,3 +1,4 @@
+import logging
 import time
 
 import httpx
@@ -92,6 +93,24 @@ def test_job_log_follows_redirect_without_leaking_token():
     client, _ = make_client(handler)
     assert client.get_job_log("o/r", 5) == "2026-01-01T00:00:00.0Z hello\n"
     assert "authorization" not in seen_blob_headers
+
+
+def test_signed_log_url_never_reaches_logs(caplog):
+    from ci_triage.miner.__main__ import configure_logging
+
+    configure_logging()
+    caplog.set_level(logging.DEBUG)
+
+    def handler(request):
+        if request.url.host == "api.github.com":
+            return httpx.Response(302, headers={"location": "https://blob.example/x?sig=SECRET"})
+        return httpx.Response(200, text="log")
+
+    client, _ = make_client(handler)
+    client.get_job_log("o/r", 5)
+    assert "signed blob redirect" in caplog.text  # our sanitized request line exists
+    assert "SECRET" not in caplog.text
+    assert "blob.example" not in caplog.text
 
 
 def test_expired_job_log_returns_none():

@@ -131,6 +131,26 @@ def test_source_fix_is_consistent_with_test_failure():
     assert (d.category, d.confidence, d.status) == (C.TEST_FAILURE, "medium", "auto_verified")
 
 
+def test_stage_guess_is_not_verified_by_a_broad_fix():
+    d = combine(Signal(C.TEST_FAILURE, "stage_fallback:test"), fix(None, {C.TEST_FAILURE}))
+    assert (d.confidence, d.status, d.rule) == ("low", "needs_review", "weak_log_signal")
+
+
+def test_stage_guess_matching_a_specific_fix_is_only_medium():
+    d = combine(
+        Signal(C.TEST_FAILURE, "stage_fallback:test"), fix(C.TEST_FAILURE, {C.TEST_FAILURE})
+    )
+    assert (d.confidence, d.status) == ("medium", "auto_verified")
+
+
+def test_stage_guess_with_decisive_flaky_evidence_is_high():
+    d = combine(
+        Signal(C.TEST_FAILURE, "stage_fallback:test"),
+        fix(C.FLAKY, {C.TEST_FAILURE}, overrides=True, decisive=True),
+    )
+    assert (d.category, d.confidence) == (C.FLAKY, "high")
+
+
 def test_conflict_goes_to_review():
     d = combine(Signal(C.FORMAT_FAILURE, "formatter"), fix(C.FLAKY, {C.TEST_FAILURE}))
     assert (d.category, d.status) == (C.FORMAT_FAILURE, "needs_review")

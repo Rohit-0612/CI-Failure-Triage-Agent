@@ -14,6 +14,16 @@ from ci_triage.miner.config import load_settings
 from ci_triage.miner.pipeline import Miner
 
 
+def configure_logging() -> None:
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+    )
+    # httpx logs every request URL at INFO, including signed log-download URLs that
+    # act as temporary credentials. GitHubClient logs its own sanitized request lines.
+    for name in ("httpx", "httpcore"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m ci_triage.miner")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -25,9 +35,7 @@ def main(argv: list[str] | None = None) -> None:
     mine.add_argument("--max-per-repo", type=int, help="cap accepted cases per repo")
 
     args = parser.parse_args(argv)
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
-    )
+    configure_logging()
     load_dotenv()
 
     if args.command == "mine":

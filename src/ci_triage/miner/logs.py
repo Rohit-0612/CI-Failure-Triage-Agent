@@ -18,6 +18,7 @@ from typing import Literal
 from ci_triage.taxonomy import FailedStage
 
 _TS_RE = re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d+)?Z ?(.*)$")
+_ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
 
 _ERROR_LINE_RE = re.compile(
     r"##\[error\]"
@@ -58,16 +59,20 @@ class StepSlice:
 
 
 def parse_log(raw: str) -> list[LogLine]:
-    """Split a raw log into (timestamp, text). Lines without a timestamp inherit one."""
+    """Split a raw log into (timestamp, text). Lines without a timestamp inherit one.
+
+    ANSI color codes are removed: tools like pre-commit and pytest print colored
+    output in CI, and `\\x1b[41mFailed\\x1b[m` would otherwise defeat every pattern.
+    """
     lines: list[LogLine] = []
     last_ts: datetime | None = None
     for line in raw.lstrip("﻿").splitlines():
         match = _TS_RE.match(line)
         if match:
             last_ts = datetime.fromisoformat(match.group(1) + "+00:00")
-            lines.append(LogLine(last_ts, match.group(2)))
+            lines.append(LogLine(last_ts, _ANSI_RE.sub("", match.group(2))))
         else:
-            lines.append(LogLine(last_ts, line))
+            lines.append(LogLine(last_ts, _ANSI_RE.sub("", line)))
     return lines
 
 
@@ -89,15 +94,30 @@ def slice_failed_step(
             marker = f"##[group]{step_name}" if step_name else None
             for i in range(first, last + 1):
                 if marker and lines[i].text.startswith(marker):
-                    return StepSlice(_texts(lines[i : last + 1]), "group_marker")
+                    return StepSlice(_trim_end(_texts(lines[i : last + 1])), "group_marker")
             # Steps share boundary seconds; skip the previous step's tail if possible.
             for i in range(first, last + 1):
                 if lines[i].text.startswith("##[group]Run ") and lines[i].ts == lines[first].ts:
-                    return StepSlice(_texts(lines[i : last + 1]), "timestamp")
+                    return StepSlice(_trim_end(_texts(lines[i : last + 1])), "timestamp")
                 if lines[i].ts != lines[first].ts:
                     break
-            return StepSlice(_texts(lines[first : last + 1]), "timestamp")
+            return StepSlice(_trim_end(_texts(lines[first : last + 1])), "timestamp")
     return StepSlice(_texts(lines[-tail_lines:]), "tail")
+
+
+def _trim_end(texts: list[str]) -> list[str]:
+    """Cut post-job steps that share the failed step's last second.
+
+    A failing `run` step ends with `##[error]Process completed with exit code N.`;
+    post-job steps start with `Post job cleanup.`. Nested `##[group]Run` lines are NOT
+    boundaries: composite actions (e.g. pre-commit/action) print their own.
+    """
+    for j, text in enumerate(texts):
+        if text.startswith("##[error]Process completed with exit code"):
+            return texts[: j + 1]
+        if j > 0 and text.startswith("Post job cleanup."):
+            return texts[:j]
+    return texts
 
 
 def build_excerpt(lines: list[str], max_chars: int, head_lines: int = 30) -> tuple[str, bool]:

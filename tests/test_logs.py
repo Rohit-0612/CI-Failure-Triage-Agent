@@ -48,6 +48,33 @@ def test_slice_falls_back_to_tail_without_step_times():
     assert len(sliced.lines) == 2
 
 
+def test_ansi_color_codes_are_stripped():
+    raw = "2026-09-01T10:00:05.1Z ruff.....................\x1b[41mFailed\x1b[m"
+    assert logs.parse_log(raw)[0].text == "ruff.....................Failed"
+
+
+def test_slice_stops_at_step_end_even_within_the_same_second():
+    # Real runner output: post-job steps start in the same second the step completed.
+    raw = "\n".join(
+        [
+            "2026-09-01T10:00:05.1Z ##[group]Run pre-commit/action@v3",
+            "2026-09-01T10:00:05.2Z ##[group]Run pre-commit run --all-files",  # nested
+            "2026-09-01T10:00:08.0Z ruff.....................Failed",
+            "2026-09-01T10:00:09.1Z ##[error]Process completed with exit code 1.",
+            "2026-09-01T10:00:09.2Z Post job cleanup.",
+            "2026-09-01T10:00:09.3Z [command]/usr/bin/git version",
+        ]
+    )
+    sliced = logs.slice_failed_step(
+        logs.parse_log(raw),
+        "Run pre-commit/action@v3",
+        "2026-09-01T10:00:05Z",
+        "2026-09-01T10:00:09Z",
+    )
+    assert sliced.lines[1] == "##[group]Run pre-commit run --all-files"
+    assert sliced.lines[-1] == "##[error]Process completed with exit code 1."
+
+
 def test_build_excerpt_keeps_head_and_tail():
     lines = [f"line {i}" for i in range(1000)]
     text, truncated = logs.build_excerpt(lines, max_chars=500, head_lines=5)
