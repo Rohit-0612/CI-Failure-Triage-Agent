@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-09-15T08:47:36.534428+00:00",
+  "total_cases": 50,
+  "flaky_cases": 6,
+  "cases_per_repo": {
+    "pydantic/pydantic": 4,
+    "pallets/flask": 4,
+    "pallets/click": 4,
+    "pallets/jinja": 4,
+    "pallets/werkzeug": 4,
+    "pytest-dev/pytest": 4,
+    "Textualize/rich": 4,
+    "Kludex/starlette": 4,
+    "fastapi/fastapi": 4,
+    "psf/black": 3,
+    "psf/requests": 1,
+    "pypa/pip": 4,
+    "pypa/pipx": 4,
+    "tox-dev/tox": 2
+  },
+  "funnel_this_run": {
+    "failed_runs_seen": 2006,
+    "failed_runs_skipped_event": 653,
+    "streaks_examined": 246,
+    "rejected:no_green_found": 187,
+    "accepted": 50,
+    "rejected:fix_ambiguous": 7,
+    "rejected:no_failed_job": 2
+  },
+  "api_requests_this_run": 0,
+  "api_cache_hits_this_run": 494,
+  "settings": {
+    "events": [
+      "push",
+      "pull_request"
+    ],
+    "lookback_days": 80,
+    "target_cases": 50,
+    "max_cases_per_repo": 4,
+    "max_flaky_cases": 10,
+    "max_keys_per_repo": 60,
+    "max_fix_window_commits": 5,
+    "max_log_excerpt_chars": 20000,
+    "max_error_lines": 150,
+    "max_diff_chars": 40000,
+    "max_file_chars": 12000,
+    "max_relevant_files": 6,
+    "data_dir": "data"
+  }
+}
