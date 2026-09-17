@@ -119,6 +119,33 @@ def test_unknown_answer_retries_with_more_evidence(case):
     assert final["diagnosis"].failure_type == C.TEST_FAILURE
 
 
+def test_repair_loop_stops_when_the_complaint_does_not_change(case):
+    # Observed on real cases: the model kept re-proposing the same rejected path, and each
+    # retry cost ~3 minutes locally.
+    stuck = good_proposal(suspect_files=["src/invented.py"])
+    final, client = run(case, [stuck, stuck, stuck])
+    assert len(client.calls) == 2  # propose + one repair, then stop
+    assert final["diagnosis"].affected_files == []
+
+
+def test_path_printed_in_the_log_is_accepted_even_if_unresolved(case, record_dict):
+    # Windows-style path the miner could not map to a repo file, but the log shows it.
+    windows = CaseRecord.model_validate(
+        record_dict(
+            log_excerpt="tests\\pkg\\test_x.py .... FAILED",
+            error_lines=["E   assert 1 == 2"],
+            log_referenced_files=[],
+        )
+    )
+    proposal = good_proposal(
+        suspect_files=["tests\\pkg\\test_x.py"],
+        evidence=[{"quote": "E   assert 1 == 2", "why": "assertion"}],
+    )
+    final, client = run(windows, [proposal])
+    assert len(client.calls) == 1  # not rejected as invented
+    assert final["diagnosis"].affected_files == ["tests/pkg/test_x.py"]
+
+
 def test_best_effort_finalize_when_repairs_are_exhausted(case):
     bad = good_proposal(evidence=[{"quote": "not in the log", "why": "x"}])
     final, _ = run(case, [bad, bad, bad], max_llm_calls=2)

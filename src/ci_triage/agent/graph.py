@@ -50,6 +50,7 @@ class InvestigationState(TypedDict, total=False):
     evidence: str
     proposal: dict[str, Any]
     problems: list[str]
+    previous_problems: list[str]
     llm_calls: int
     usage: Usage
     trace: list[dict[str, Any]]
@@ -124,7 +125,11 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
         if state.get("error"):
             return {"problems": [state["error"]]}
         problems = _validate(state["case"], state["evidence"], state.get("proposal") or {})
-        return {"problems": problems, "trace": record(state, "validate", problems=problems)}
+        return {
+            "problems": problems,
+            "previous_problems": state.get("problems", []),
+            "trace": record(state, "validate", problems=problems),
+        }
 
     def finalize(state: InvestigationState) -> InvestigationState:
         proposal = state.get("proposal")
@@ -147,7 +152,12 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
         calls_left = state.get("llm_calls", 0) < max_llm_calls
         if not proposal:
             return END  # transport failure with nothing to fall back on
-        if state.get("problems"):
+        problems = state.get("problems") or []
+        if problems:
+            # Stop if the repair produced exactly the same complaints: the model is not
+            # going to fix it, and each local call costs ~90-180 s.
+            if problems == state.get("previous_problems"):
+                return "finalize"
             # Retry while we can; otherwise finalize best-effort - the mapping step drops
             # ungrounded quotes and invented paths anyway.
             return "repair" if calls_left else "finalize"
@@ -184,7 +194,7 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
 
 
 def known_paths(case: CaseView) -> set[str]:
-    """Paths the evidence actually mentions; anything else is invented."""
+    """Paths the case data names explicitly (resolved by the miner)."""
     inp = case.input
     paths = set(inp.log_referenced_files)
     paths.update(f.path for f in inp.relevant_files)
@@ -192,6 +202,18 @@ def known_paths(case: CaseView) -> set[str]:
         paths.update(inp.breaking_window.files_changed)
     paths.update(test.split("::", 1)[0] for test in inp.failing_tests)
     return paths
+
+
+def path_is_supported(path: str, case: CaseView, evidence_text: str) -> bool:
+    """A file path is acceptable if the evidence mentions it at all.
+
+    Not only the miner's resolved list: a log can print a path the miner could not map
+    (e.g. Windows `tests\\pkg\\test_x.py`), and blaming the model for reading it is wrong.
+    """
+    if path in known_paths(case):
+        return True
+    candidate = path.replace("\\", "/").strip()
+    return bool(candidate) and candidate in evidence_text.replace("\\", "/")
 
 
 def _validate(case: CaseView, evidence_text: str, proposal: dict[str, Any]) -> list[str]:
@@ -223,7 +245,11 @@ def _validate(case: CaseView, evidence_text: str, proposal: dict[str, Any]) -> l
             f"{len(ungrounded)} quote(s) are not verbatim, e.g. {ungrounded[0][:120]!r}"
         )
 
-    invented = [p for p in proposal.get("suspect_files") or [] if p not in known_paths(case)]
+    invented = [
+        p
+        for p in proposal.get("suspect_files") or []
+        if not path_is_supported(p, case, evidence_text)
+    ]
     if invented:
         problems.append(f"these file paths do not appear in the evidence: {invented[:3]}")
     return problems
@@ -270,8 +296,11 @@ def _to_diagnosis(case: CaseView, evidence_text: str, proposal: dict[str, Any]) 
         if len(items) >= MAX_EVIDENCE_ITEMS:
             break
 
-    allowed = known_paths(case)
-    files = [p for p in proposal.get("suspect_files") or [] if p in allowed][:MAX_AFFECTED_FILES]
+    files = [
+        p.replace("\\", "/")
+        for p in proposal.get("suspect_files") or []
+        if path_is_supported(p, case, evidence_text)
+    ][:MAX_AFFECTED_FILES]
     category = proposal.get("failure_type")
     if category not in {c.value for c in FailureCategory}:
         category = FailureCategory.UNKNOWN.value

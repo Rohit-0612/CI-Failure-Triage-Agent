@@ -24,7 +24,9 @@ DEFAULT_BUDGET_CHARS = 24_000
 # Used when the first attempt answers UNKNOWN and the graph retries with more evidence.
 EXPANDED_BUDGET_CHARS = 40_000
 MAX_FILE_CHARS = 6_000
-MAX_FILES = 4
+# Two files, not four: with four, the log and the diff got squeezed to nothing (observed
+# on real pydantic cases, where six of eight sections were truncated).
+MAX_FILES = 2
 
 _TAG_RE = re.compile(r"</?untrusted_evidence>", re.IGNORECASE)
 _CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
