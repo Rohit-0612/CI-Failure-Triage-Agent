@@ -7,9 +7,11 @@ are read here, in the evaluator, and nowhere else.
 from __future__ import annotations
 
 import json
+import logging
 import time
 from collections import Counter
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -18,14 +20,45 @@ from pydantic import BaseModel, ConfigDict
 from ci_triage.baseline import analyze as baseline
 from ci_triage.diagnosis import Diagnosis
 from ci_triage.evaluation import metrics
+from ci_triage.llm import Usage
 from ci_triage.miner.schema import CaseRecord, CaseView
 from ci_triage.paths import is_doc_path
 from ci_triage.taxonomy import FailureCategory
 
+logger = logging.getLogger(__name__)
+
 SystemFn = Callable[[CaseView], Diagnosis]
 
-SYSTEMS: dict[str, tuple[str, SystemFn]] = {
-    "baseline": (baseline.NAME, baseline.analyze),
+
+@dataclass
+class SystemRun:
+    """A system ready to be evaluated.
+
+    `name` identifies what produced the predictions and includes the model for LLM
+    systems, so a report can never be mistaken for one from a different model.
+    `usage_of` returns the last case's token/call counts, if the system tracks them.
+    """
+
+    name: str
+    analyze: SystemFn
+    usage_of: Callable[[], Usage] | None = None
+
+
+def _baseline_system(trace_dir: Path | None = None) -> SystemRun:
+    return SystemRun(baseline.NAME, baseline.analyze)
+
+
+def _agent_system(trace_dir: Path | None = None) -> SystemRun:
+    # Imported lazily: the baseline must stay usable without langgraph or a model server.
+    from ci_triage.agent import run as agent_run
+
+    investigator = agent_run.from_env(trace_dir)
+    return SystemRun(investigator.name, investigator.analyze, lambda: investigator.last_usage)
+
+
+SYSTEMS: dict[str, Callable[[Path | None], SystemRun]] = {
+    "baseline": _baseline_system,
+    "agent": _agent_system,
 }
 
 # Failures whose "fix window" is not a code repair (a metadata edit, a rerun, the network
@@ -57,24 +90,38 @@ class Prediction(BaseModel):
     cost_usd: float = 0.0
 
 
-def run_system(system: str, cases: list[CaseRecord]) -> list[Prediction]:
-    name, fn = SYSTEMS[system]
+def run_system(
+    system: str, cases: list[CaseRecord], *, trace_dir: Path | None = None
+) -> list[Prediction]:
+    run = SYSTEMS[system](trace_dir)
     predictions = []
-    for case in cases:
+    for index, case in enumerate(cases, start=1):
         view = case.visible()
         started = time.perf_counter()
         try:
-            diagnosis, error = fn(view), None
+            diagnosis, error = run.analyze(view), None
         except Exception as exc:  # one broken case must not abort the whole evaluation
             diagnosis, error = None, f"{type(exc).__name__}: {exc}"[:500]
+        usage = run.usage_of() if run.usage_of else Usage(0, 0, 0)
         predictions.append(
             Prediction(
                 case_id=case.case_id,
-                system=name,
+                system=run.name,
                 diagnosis=diagnosis,
                 error=error,
                 latency_ms=round((time.perf_counter() - started) * 1000, 3),
+                llm_calls=usage.calls,
+                input_tokens=usage.input_tokens,
+                output_tokens=usage.output_tokens,
             )
+        )
+        logger.info(
+            "[%d/%d] %s %s in %.1fs",
+            index,
+            len(cases),
+            case.case_id,
+            error or (diagnosis.failure_type if diagnosis else "?"),
+            predictions[-1].latency_ms / 1000,
         )
     return predictions
 
@@ -184,6 +231,10 @@ def evaluate(
             "tool_calls_total": sum(p.tool_calls for p in predictions),
             "llm_calls_total": sum(p.llm_calls for p in predictions),
             "cost_usd_total": round(sum(p.cost_usd for p in predictions), 4),
+            "tokens": {
+                "input": sum(p.input_tokens for p in predictions),
+                "output": sum(p.output_tokens for p in predictions),
+            },
         },
         "per_case": per_case,
     }

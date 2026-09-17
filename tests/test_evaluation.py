@@ -105,7 +105,11 @@ def test_run_system_isolates_failures(cases, monkeypatch):
         assert not hasattr(view, "ground_truth")  # systems only ever get a CaseView
         raise RuntimeError("bad case")
 
-    monkeypatch.setitem(runner_mod.SYSTEMS, "broken", ("broken_v0", broken))
+    monkeypatch.setitem(
+        runner_mod.SYSTEMS,
+        "broken",
+        lambda trace_dir=None: runner_mod.SystemRun("broken_v0", broken),
+    )
     predictions = run_system("broken", cases)
     assert len(predictions) == 4
     assert all(p.diagnosis is None and "bad case" in p.error for p in predictions)
