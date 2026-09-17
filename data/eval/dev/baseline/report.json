@@ -162,7 +162,11 @@
     "latency_ms_p95": 3.763,
     "tool_calls_total": 0,
     "llm_calls_total": 0,
-    "cost_usd_total": 0.0
+    "cost_usd_total": 0.0,
+    "tokens": {
+      "input": 0,
+      "output": 0
+    }
   },
   "per_case": [
     {
@@ -1112,5 +1116,6 @@
         "tests/config/source/test_toml_tox.py"
       ]
     }
-  ]
+  ],
+  "scored_cases_of_split": "50/50"
 }
