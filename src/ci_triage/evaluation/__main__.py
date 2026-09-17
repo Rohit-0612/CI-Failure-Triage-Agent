@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -34,12 +35,19 @@ def main(argv: list[str] | None = None) -> None:
         cmd.add_argument("--limit", type=int, help="only the first N cases of the split")
         cmd.add_argument("--cases", nargs="+", help="only these case ids")
 
+    compare = sub.add_parser("compare", help="table of every system's report for a split")
+    compare.add_argument("--split", choices=["dev", "test"], default="dev")
+
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
     )
     for noisy in ("httpx", "httpcore"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
+
+    if args.command == "compare":
+        print(compare_systems(args.data_dir / "eval" / args.split))
+        return
 
     cases = load_cases(args.data_dir / "processed" / args.split / "cases.jsonl")
     if not cases:
@@ -78,6 +86,53 @@ def select_cases(
     if limit:
         selected = selected[:limit]
     return selected
+
+
+def compare_systems(split_dir: Path) -> str:
+    """Markdown table of every report under data/eval/<split>/*/report.json.
+
+    Rows are metrics, columns are systems, so a report can be pasted into the README
+    without retyping numbers (and without mixing up which model produced them).
+    """
+    reports = [json.loads(p.read_text()) for p in sorted(split_dir.glob("*/report.json"))]
+    if not reports:
+        raise SystemExit(f"no reports under {split_dir}")
+
+    def pct(value: dict[str, Any] | None) -> str:
+        if not value or not value.get("n"):
+            return "-"
+        low, high = value["ci95"]
+        return f"{value['rate']:.1%} ({value['hits']}/{value['n']}, CI {low:.0%}-{high:.0%})"
+
+    rows: list[tuple[str, list[str]]] = [
+        ("cases scored", [str(r.get("scored_cases_of_split", r["cases"])) for r in reports]),
+        (
+            "category accuracy (auto labels)",
+            [pct(r["category_accuracy"].get("all")) for r in reports],
+        ),
+        ("localization hit@1", [pct(r["localization"].get("hit@1")) for r in reports]),
+        ("localization hit@3", [pct(r["localization"].get("hit@3")) for r in reports]),
+        ("localization MRR", [str(r["localization"].get("mrr", "-")) for r in reports]),
+        (
+            "evidence grounded",
+            [
+                f"{r['evidence_grounding']['grounded']}/{r['evidence_grounding']['items']}"
+                for r in reports
+            ],
+        ),
+        ("abstention (UNKNOWN)", [str(r["abstention_rate"]) for r in reports]),
+        ("errors", [str(r["errors"]) for r in reports]),
+        (
+            "mean latency",
+            [f"{(r['operational']['latency_ms_mean'] or 0) / 1000:.1f}s" for r in reports],
+        ),
+        ("LLM calls", [str(r["operational"]["llm_calls_total"]) for r in reports]),
+        ("cost", [f"${r['operational']['cost_usd_total']}" for r in reports]),
+    ]
+    header = ["metric", *(r["system"] for r in reports)]
+    lines = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
+    lines += [f"| {name} | " + " | ".join(values) + " |" for name, values in rows]
+    return "\n".join(lines)
 
 
 def format_summary(report: dict[str, Any]) -> str:
