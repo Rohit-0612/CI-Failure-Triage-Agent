@@ -34,6 +34,11 @@ def main(argv: list[str] | None = None) -> None:
         # Local models take ~1-3 minutes per case, so partial runs must be possible.
         cmd.add_argument("--limit", type=int, help="only the first N cases of the split")
         cmd.add_argument("--cases", nargs="+", help="only these case ids")
+        cmd.add_argument(
+            "--resume",
+            action="store_true",
+            help="skip cases that already have a prediction (same system and split)",
+        )
 
     compare = sub.add_parser("compare", help="table of every system's report for a split")
     compare.add_argument("--split", choices=["dev", "test"], default="dev")
@@ -56,14 +61,22 @@ def main(argv: list[str] | None = None) -> None:
     predictions_path = out_dir / "predictions.jsonl"
 
     if args.command == "run":
+        kept = read_jsonl(predictions_path) if predictions_path.exists() else []
         selected = select_cases(cases, args.cases, args.limit)
-        predictions = run_system(args.system, selected, trace_dir=out_dir / "traces")
-        if len(selected) < len(cases):
-            # Partial run: keep predictions for cases we did not re-run this time.
-            existing = read_jsonl(predictions_path) if predictions_path.exists() else []
-            fresh = {p.case_id for p in predictions}
-            predictions = [p for p in existing if p.case_id not in fresh] + predictions
-        write_jsonl(predictions_path, predictions)
+        if args.resume:
+            done = {p.case_id for p in kept}
+            selected = [c for c in selected if c.case_id not in done]
+            print(f"resuming: {len(done)} already done, {len(selected)} to go")
+        fresh = {c.case_id for c in selected}
+        kept = [p for p in kept if p.case_id not in fresh]
+
+        # Save after every case: a local run takes over an hour and may be interrupted.
+        def save(prediction) -> None:
+            kept.append(prediction)
+            write_jsonl(predictions_path, kept)
+
+        run_system(args.system, selected, trace_dir=out_dir / "traces", on_prediction=save)
+        write_jsonl(predictions_path, kept)
 
     predictions = read_jsonl(predictions_path)
     scored = [c for c in cases if c.case_id in {p.case_id for p in predictions}]

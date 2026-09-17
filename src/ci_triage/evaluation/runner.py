@@ -91,8 +91,14 @@ class Prediction(BaseModel):
 
 
 def run_system(
-    system: str, cases: list[CaseRecord], *, trace_dir: Path | None = None
+    system: str,
+    cases: list[CaseRecord],
+    *,
+    trace_dir: Path | None = None,
+    on_prediction: Callable[[Prediction], None] | None = None,
 ) -> list[Prediction]:
+    """Run every case. `on_prediction` fires after each one, so a long run that is
+    interrupted (a local model takes ~1-3 minutes per case) keeps what it finished."""
     run = SYSTEMS[system](trace_dir)
     predictions = []
     for index, case in enumerate(cases, start=1):
@@ -123,6 +129,8 @@ def run_system(
             error or (diagnosis.failure_type if diagnosis else "?"),
             predictions[-1].latency_ms / 1000,
         )
+        if on_prediction:
+            on_prediction(predictions[-1])
     return predictions
 
 

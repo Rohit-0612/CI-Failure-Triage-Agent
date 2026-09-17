@@ -100,6 +100,20 @@ def test_evaluate_refuses_missing_predictions(cases):
         evaluate(cases, [], "s", "dev")
 
 
+def test_run_system_reports_each_prediction_as_it_finishes(cases, monkeypatch):
+    """Long local runs must survive interruption, so results are saved per case."""
+    saved: list[str] = []
+    monkeypatch.setitem(
+        runner_mod.SYSTEMS,
+        "stub",
+        lambda trace_dir=None: runner_mod.SystemRun(
+            "stub_v0", lambda view: diag("TEST_FAILURE", [])
+        ),
+    )
+    run_system("stub", cases, on_prediction=lambda p: saved.append(p.case_id))
+    assert saved == [c.case_id for c in cases]
+
+
 def test_run_system_isolates_failures(cases, monkeypatch):
     def broken(view):
         assert not hasattr(view, "ground_truth")  # systems only ever get a CaseView
