@@ -1,0 +1,109 @@
+{
+  "case_id": "pytest-dev__pytest__34187626286",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 3,
+  "usage": {
+    "input_tokens": 20765,
+    "output_tokens": 539
+  },
+  "problems": [
+    "1 quote(s) are not verbatim, e.g. \"E   SyntaxError: unexpected character '<'\""
+  ],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789830751.653643,
+      "chars": 24379,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/_pytest/python.py (at the failed commit)",
+        "file testing/code/test_excinfo.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/_pytest/python.py (at the failed commit)",
+        "file testing/code/test_excinfo.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789830853.8670661,
+      "seconds": 102.2,
+      "input_tokens": 6888,
+      "output_tokens": 100,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789830853.8713338,
+      "problems": [
+        "none of the quotes appear verbatim in the evidence; the first was \"SyntaxError: unexpected character '<'\""
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789830999.630857,
+      "seconds": 145.8,
+      "input_tokens": 6939,
+      "output_tokens": 164,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789830999.6416068,
+      "problems": [
+        "1 quote(s) are not verbatim, e.g. \"SyntaxError: unexpected character '<'\""
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789831183.157341,
+      "seconds": 183.5,
+      "input_tokens": 6938,
+      "output_tokens": 275,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789831183.1652281,
+      "problems": [
+        "1 quote(s) are not verbatim, e.g. \"E   SyntaxError: unexpected character '<'\""
+      ]
+    },
+    {
+      "node": "finalize",
+      "at": 1789831183.170418,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 1,
+      "files": [
+        "testing/code/test_excinfo.py",
+        "src/_pytest/python.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "pytest.PytestWarning: In testing/code/test_excinfo.py::TestExceptionInfoFormatter::test_format_excinfo: parametrization ID 'style=long,showlocals=True,funcargs=True,tbfilter=True' contains characters that prevent selecting the generated test case directly with '-k'",
+    "confidence": 1.0,
+    "suspect_files": [
+      "testing/code/test_excinfo.py",
+      "src/_pytest/python.py"
+    ],
+    "evidence": [
+      {
+        "quote": "pytest.PytestWarning: In testing/code/test_excinfo.py::TestExceptionInfoFormatter::test_format_excinfo: parametrization ID 'style=long,showlocals=True,funcargs=True,tbfilter=True' contains characters that prevent selecting the generated test case directly with '-k'",
+        "why": "This warning is directly related to the test failure and indicates that the parametrization ID contains characters that prevent selection with '-k'."
+      },
+      {
+        "quote": "E   SyntaxError: unexpected character '<'",
+        "why": "This syntax error is likely caused by the parametrization ID containing characters that are not valid in an identifier, as identified by the pytest warning."
+      }
+    ]
+  }
+}

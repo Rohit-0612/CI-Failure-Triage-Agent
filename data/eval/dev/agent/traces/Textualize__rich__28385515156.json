@@ -1,0 +1,98 @@
+{
+  "case_id": "Textualize__rich__28385515156",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 8822,
+    "output_tokens": 697
+  },
+  "problems": [
+    "none of the quotes appear verbatim in the evidence; the first was 'rich/syntax.py:809: error: Incompatible types in assignment (expression has type \"list[Segment]\", variable has type \"Tex'"
+  ],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789831588.881897,
+      "chars": 15036,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file rich/syntax.py (at the failed commit)",
+        "file benchmarks/benchmarks.py (at the failed commit)"
+      ],
+      "truncated": [
+        "file rich/syntax.py (at the failed commit)",
+        "file benchmarks/benchmarks.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789831703.7685509,
+      "seconds": 114.9,
+      "input_tokens": 4374,
+      "output_tokens": 352,
+      "answer": "TYPE_ERROR"
+    },
+    {
+      "node": "validate",
+      "at": 1789831703.772524,
+      "problems": [
+        "none of the quotes appear verbatim in the evidence; the first was 'rich/syntax.py:809: error: Incompatible types in assignment (expression has type \"list[Segment]\", variable has type \"Tex'"
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789831820.284113,
+      "seconds": 116.5,
+      "input_tokens": 4448,
+      "output_tokens": 345,
+      "answer": "TYPE_ERROR"
+    },
+    {
+      "node": "validate",
+      "at": 1789831820.288434,
+      "problems": [
+        "none of the quotes appear verbatim in the evidence; the first was 'rich/syntax.py:809: error: Incompatible types in assignment (expression has type \"list[Segment]\", variable has type \"Tex'"
+      ]
+    },
+    {
+      "node": "finalize",
+      "at": 1789831820.289314,
+      "failure_type": "TYPE_ERROR",
+      "evidence_items": 0,
+      "files": [
+        "rich/syntax.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TYPE_ERROR",
+    "root_cause": "Incompatible types in assignment (expression has type \"list[Segment]\", variable has type \"Text\")",
+    "confidence": 1.0,
+    "suspect_files": [
+      "rich/syntax.py"
+    ],
+    "evidence": [
+      {
+        "quote": "rich/syntax.py:809: error: Incompatible types in assignment (expression has type \"list[Segment]\", variable has type \"Text\")  [assignment]",
+        "why": "This line indicates a type error where a list of Segments is being assigned to a variable of type Text."
+      },
+      {
+        "quote": "rich/syntax.py:820: error: \"yield from\" can't be applied to \"Text\"  [misc]",
+        "why": "This line indicates another type error related to the use of 'yield from' on a variable of type Text."
+      },
+      {
+        "quote": "rich/syntax.py:823: error: Incompatible types in assignment (expression has type \"list[Segment]\", variable has type \"Text\")  [assignment]",
+        "why": "This line indicates a third type error where a list of Segments is being assigned to a variable of type Text."
+      },
+      {
+        "quote": "rich/syntax.py:824: error: \"yield from\" can't be applied to \"Text\"  [misc]",
+        "why": "This line indicates another type error related to the use of 'yield from' on a variable of type Text."
+      }
+    ]
+  }
+}

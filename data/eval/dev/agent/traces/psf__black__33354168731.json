@@ -1,0 +1,85 @@
+{
+  "case_id": "psf__black__33354168731",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 8050,
+    "output_tokens": 324
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789833633.3418,
+      "chars": 11474,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/black/files.py (at the failed commit)",
+        "file src/black/linegen.py (at the failed commit)"
+      ],
+      "truncated": [
+        "file src/black/files.py (at the failed commit)",
+        "file src/black/linegen.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789833725.721243,
+      "seconds": 92.4,
+      "input_tokens": 3580,
+      "output_tokens": 167,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789833725.744749,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1789833725.749701,
+      "chars": 15658
+    },
+    {
+      "node": "propose",
+      "at": 1789833795.859658,
+      "seconds": 70.1,
+      "input_tokens": 4470,
+      "output_tokens": 157,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789833795.863873,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789833795.870799,
+      "failure_type": "UNKNOWN",
+      "evidence_items": 1,
+      "files": [
+        "CHANGES.md"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "UNKNOWN",
+    "root_cause": "The error message indicates that the PR number '(#5374)' is missing from the CHANGES.md file. The failed step is designed to check for this specific change line and fail if it is not present.",
+    "confidence": 0.8,
+    "suspect_files": [
+      "CHANGES.md"
+    ],
+    "evidence": [
+      {
+        "quote": "Please add '(#5374)' change line to CHANGES.md (or if appropriate, ask a maintainer to add the 'ci: skip news' label)",
+        "why": "This message is directly from the failed step and indicates the specific issue."
+      }
+    ]
+  }
+}

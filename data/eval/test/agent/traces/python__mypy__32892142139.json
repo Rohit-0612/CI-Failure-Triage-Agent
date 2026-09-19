@@ -1,0 +1,96 @@
+{
+  "case_id": "python__mypy__32892142139",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 12389,
+    "output_tokens": 934
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789836243.331295,
+      "chars": 22800,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file mypy/test/testcheck.py (at the failed commit)",
+        "file mypy/checkexpr.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file mypy/test/testcheck.py (at the failed commit)",
+        "file mypy/checkexpr.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789836387.76912,
+      "seconds": 144.4,
+      "input_tokens": 6160,
+      "output_tokens": 530,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789836387.771722,
+      "problems": [
+        "1 quote(s) are not verbatim, e.g. 'if prefer_literal and not (isinstance(left, Instance) and not left.type.is_enum and isinstance(right, Instance) and not '"
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789836507.325523,
+      "seconds": 119.6,
+      "input_tokens": 6229,
+      "output_tokens": 404,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789836507.32915,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789836507.330358,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 3,
+      "files": [
+        "mypy/test/testcheck.py",
+        "mypy/checkexpr.py",
+        "mypy/join.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "The test cases in mypy/test/testcheck.py failed due to changes in the codebase, specifically in mypy/checkexpr.py and mypy/join.py. The changes introduced new conditions that caused the tests to fail.",
+    "confidence": 0.9,
+    "suspect_files": [
+      "mypy/test/testcheck.py",
+      "mypy/checkexpr.py",
+      "mypy/join.py"
+    ],
+    "evidence": [
+      {
+        "quote": "FAILED mypy/test/testcheck.py::TypeCheckSuite::check-isinstance.test::testNarrowTypeAfterInSet - data: D:\\a\\mypy\\mypy\\test-data\\unit\\check-isinstance.test:2377:",
+        "why": "This line indicates that the test case 'testNarrowTypeAfterInSet' in 'mypy/test/testcheck.py' failed."
+      },
+      {
+        "quote": "FAILED mypy/test/testcheck.py::TypeCheckSuite::check-narrowing.test::testConsistentNarrowingEqAndIn - data: D:\\a\\mypy\\mypy\\test-data\\unit\\check-narrowing.test:2678:",
+        "why": "This line indicates that the test case 'testConsistentNarrowingEqAndIn' in 'mypy/test/testcheck.py' failed."
+      },
+      {
+        "quote": "FAILED mypy/test/testcheck.py::TypeCheckSuite::check-narrowing.test::testNarrowingEqualityWithPromotions - data: D:\\a\\mypy\\mypy\\test-data\\unit\\check-narrowing.test:3967:",
+        "why": "This line indicates that the test case 'testNarrowingEqualityWithPromotions' in 'mypy/test/testcheck.py' failed."
+      }
+    ]
+  }
+}

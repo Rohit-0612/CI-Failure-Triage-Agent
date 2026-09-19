@@ -1,0 +1,40 @@
+{
+  "case_id": "httpie__cli__33485749333",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0
+  },
+  "problems": [
+    "ollama unreachable at http://localhost:11434: timed out"
+  ],
+  "error": "ollama unreachable at http://localhost:11434: timed out",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789835549.09551,
+      "chars": 15010,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file tests/test_auth.py (at the failed commit)",
+        "file setup.cfg (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file tests/test_auth.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789835849.151367,
+      "error": "ollama unreachable at http://localhost:11434: timed out",
+      "raw": ""
+    }
+  ],
+  "raw_proposal": null
+}

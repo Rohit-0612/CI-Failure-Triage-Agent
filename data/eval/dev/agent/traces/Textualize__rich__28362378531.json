@@ -1,0 +1,67 @@
+{
+  "case_id": "Textualize__rich__28362378531",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 4710,
+    "output_tokens": 106
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789831820.300694,
+      "chars": 11209,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file rich/syntax.py (at the failed commit)",
+        "file tests/test_syntax.py (at the failed commit)"
+      ],
+      "truncated": [
+        "file rich/syntax.py (at the failed commit)",
+        "file tests/test_syntax.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789831902.2540958,
+      "seconds": 82.0,
+      "input_tokens": 4710,
+      "output_tokens": 106,
+      "answer": "FORMAT_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789831902.25931,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789831902.264626,
+      "failure_type": "FORMAT_FAILURE",
+      "evidence_items": 1,
+      "files": [
+        "tests/test_syntax.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "FORMAT_FAILURE",
+    "root_cause": "Black would reformat tests/test_syntax.py, indicating a formatting issue.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_syntax.py"
+    ],
+    "evidence": [
+      {
+        "quote": "would reformat tests\\test_syntax.py",
+        "why": "This line indicates that Black would reformat the specified file, suggesting a formatting issue."
+      }
+    ]
+  }
+}

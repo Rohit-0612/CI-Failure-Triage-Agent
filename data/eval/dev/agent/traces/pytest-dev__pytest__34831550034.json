@@ -1,0 +1,77 @@
+{
+  "case_id": "pytest-dev__pytest__34831550034",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 7410,
+    "output_tokens": 308
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789830605.822913,
+      "chars": 23749,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file testing/python/fixtures.py (at the failed commit)",
+        "file testing/test_debugging.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file testing/python/fixtures.py (at the failed commit)",
+        "file testing/test_debugging.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789830751.63555,
+      "seconds": 145.8,
+      "input_tokens": 7410,
+      "output_tokens": 308,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789830751.639789,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789830751.641244,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 3,
+      "files": [
+        "testing/test_debugging.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "The test `test_pdb_unittest_postmortem` in `testing/test_debugging.py` failed due to a timeout when attempting to interact with the debugger.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "testing/test_debugging.py"
+    ],
+    "evidence": [
+      {
+        "quote": "E           pexpect.exceptions.TIMEOUT: Timeout exceeded.",
+        "why": "This indicates that the test timed out while waiting for the debugger to respond."
+      },
+      {
+        "quote": "E           command: /home/runner/work/pytest/pytest/.tox/py310-xdist/bin/python3",
+        "why": "This shows the command being executed, which is the test script."
+      },
+      {
+        "quote": "E           args: ['/home/runner/work/pytest/pytest/.tox/py310-xdist/bin/python3', '-mpytest', '--basetemp=/tmp/pytest-of-runner/pytest-0/popen-gw2/test_pdb_unittest_postmortem0/temp-pexpect', '--pdb', '/tmp/pytest-of-runner/pytest-0/popen-gw2/test_pdb_unittest_postmortem0/test_pdb_unittest_postmortem.py']",
+        "why": "These are the arguments passed to the command, including the test file."
+      }
+    ]
+  }
+}

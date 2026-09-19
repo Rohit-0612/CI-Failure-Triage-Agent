@@ -1,0 +1,111 @@
+{
+  "case_id": "fastapi__fastapi__34706009509",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 3,
+  "usage": {
+    "input_tokens": 14205,
+    "output_tokens": 527
+  },
+  "problems": [
+    "ollama unreachable at http://localhost:11434: timed out"
+  ],
+  "error": "ollama unreachable at http://localhost:11434: timed out",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789832589.782593,
+      "chars": 22101,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file fastapi/dependencies/utils.py (at the failed commit)",
+        "file tests/test_stream_annotated.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file fastapi/dependencies/utils.py (at the failed commit)",
+        "file tests/test_stream_annotated.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789832736.4343638,
+      "seconds": 146.7,
+      "input_tokens": 6103,
+      "output_tokens": 238,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789832736.4454982,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1789832736.446679,
+      "chars": 30668
+    },
+    {
+      "node": "propose",
+      "at": 1789832870.934517,
+      "seconds": 134.5,
+      "input_tokens": 8102,
+      "output_tokens": 289,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789832870.937959,
+      "problems": [
+        "1 quote(s) are not verbatim, e.g. 'tests/test_stream_annotated.py                                                              157      0   100%'"
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789833170.9694972,
+      "error": "ollama unreachable at http://localhost:11434: timed out",
+      "raw": ""
+    },
+    {
+      "node": "finalize",
+      "at": 1789833170.994791,
+      "failure_type": "UNKNOWN",
+      "evidence_items": 3,
+      "files": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_stream_annotated.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "UNKNOWN",
+    "root_cause": "The evidence does not provide enough information to determine the root cause of the failure.",
+    "confidence": 0.0,
+    "suspect_files": [
+      "fastapi/dependencies/utils.py",
+      "tests/test_stream_annotated.py"
+    ],
+    "evidence": [
+      {
+        "quote": "uv run coverage report --fail-under=100",
+        "why": "This command is being run, indicating that the coverage report is being generated and checked against a coverage threshold."
+      },
+      {
+        "quote": "Name                                                                                       Stmts   Miss  Cover   Missing",
+        "why": "This header indicates that the coverage report is being generated and the coverage percentages are being displayed."
+      },
+      {
+        "quote": "tests/utils.py                                                                                11      0   100%",
+        "why": "This line shows that the coverage for the tests/utils.py file is 100%, indicating that no lines were missed."
+      },
+      {
+        "quote": "tests/test_stream_annotated.py                                                              157      0   100%",
+        "why": "This line shows that the coverage for the tests/test_stream_annotated.py file is 100%, indicating that no lines were missed."
+      }
+    ]
+  }
+}

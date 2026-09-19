@@ -1,0 +1,86 @@
+{
+  "case_id": "pypa__pip__34491528981",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 7771,
+    "output_tokens": 646
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789834054.420697,
+      "chars": 11902,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/pip/_internal/vcs/git.py (at the failed commit)",
+        "file tests/functional/test_vcs_git.py (at the failed commit)"
+      ],
+      "truncated": [
+        "file src/pip/_internal/vcs/git.py (at the failed commit)",
+        "file tests/functional/test_vcs_git.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789834175.9159439,
+      "seconds": 121.5,
+      "input_tokens": 3849,
+      "output_tokens": 452,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789834175.9383838,
+      "problems": [
+        "1 quote(s) are not verbatim, e.g. \"PR_BODY: <!---\\nThank you for your pull request! Before submitting, please make sure you've:\\n- Read the CONTRIBUTING.md f\""
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789834248.432296,
+      "seconds": 72.5,
+      "input_tokens": 3922,
+      "output_tokens": 194,
+      "answer": "POLICY_CHECK_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789834248.441063,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789834248.4492831,
+      "failure_type": "POLICY_CHECK_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        ".github/scripts/check_pr_template.sh"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "POLICY_CHECK_FAILURE",
+    "root_cause": "The 'PSF Code of Conduct' checkbox in the PR checklist must be checked.",
+    "confidence": 1.0,
+    "suspect_files": [
+      ".github/scripts/check_pr_template.sh"
+    ],
+    "evidence": [
+      {
+        "quote": "##[error]The 'PSF Code of Conduct' checkbox in the PR checklist must be checked.",
+        "why": "This error message directly states that the 'PSF Code of Conduct' checkbox must be checked."
+      },
+      {
+        "quote": "PR_BODY: <!---\nThank you for your pull request! Before submitting, please make sure you've:\n- Read the CONTRIBUTING.md f",
+        "why": "The PR body template includes a checklist that requires the 'PSF Code of Conduct' checkbox to be checked."
+      }
+    ]
+  }
+}

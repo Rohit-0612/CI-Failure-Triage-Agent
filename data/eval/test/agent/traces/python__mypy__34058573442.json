@@ -1,0 +1,70 @@
+{
+  "case_id": "python__mypy__34058573442",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 3718,
+    "output_tokens": 225
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789836179.16853,
+      "chars": 10726,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file mypy/test/testbuild.py (at the failed commit)",
+        "file mypy/build.py (at the failed commit)"
+      ],
+      "truncated": [
+        "file mypy/build.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789836243.310826,
+      "seconds": 64.1,
+      "input_tokens": 3718,
+      "output_tokens": 225,
+      "answer": "TYPE_ERROR"
+    },
+    {
+      "node": "validate",
+      "at": 1789836243.31427,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789836243.315108,
+      "failure_type": "TYPE_ERROR",
+      "evidence_items": 2,
+      "files": [
+        "mypy/test/testbuild.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TYPE_ERROR",
+    "root_cause": "mypy found type errors in the code",
+    "confidence": 1.0,
+    "suspect_files": [
+      "mypy/test/testbuild.py"
+    ],
+    "evidence": [
+      {
+        "quote": "mypy\\test\\testbuild.py:21: error: Argument 2 to \"TimeoutExpired\" has incompatible type \"float | None\"; expected \"float\"  [arg-type]",
+        "why": "This error indicates that mypy expects a float for the timeout argument in the TimeoutExpired exception, but it found a float | None instead."
+      },
+      {
+        "quote": "mypy\\test\\testbuild.py:34: error: Module \"mypy.build\" does not explicitly export attribute \"subprocess\"  [attr-defined]",
+        "why": "This error suggests that mypy is trying to access an attribute 'subprocess' from the 'mypy.build' module, but it is not explicitly exported."
+      }
+    ]
+  }
+}

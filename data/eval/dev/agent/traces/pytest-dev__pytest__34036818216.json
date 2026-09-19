@@ -1,0 +1,86 @@
+{
+  "case_id": "pytest-dev__pytest__34036818216",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 13729,
+    "output_tokens": 356
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789831183.186492,
+      "chars": 23219,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/_pytest/runner.py (at the failed commit)",
+        "file src/_pytest/logging.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/_pytest/runner.py (at the failed commit)",
+        "file src/_pytest/logging.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789831338.565451,
+      "seconds": 155.4,
+      "input_tokens": 6835,
+      "output_tokens": 244,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789831338.5736918,
+      "problems": [
+        "1 quote(s) are not verbatim, e.g. 'def test_module_cleanups_on_success(pytester: Pytester) -> None:'"
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789831452.092601,
+      "seconds": 113.5,
+      "input_tokens": 6894,
+      "output_tokens": 112,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789831452.0973141,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789831452.1052248,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 1,
+      "files": [
+        "testing/test_unittest.py",
+        "test_module_cleanups_on_success.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "An assertion failed in the test_module_cleanups_on_success.py test case.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "testing/test_unittest.py",
+      "test_module_cleanups_on_success.py"
+    ],
+    "evidence": [
+      {
+        "quote": "assert 1 == 0",
+        "why": "This is the assertion that failed, causing the test to fail."
+      }
+    ]
+  }
+}

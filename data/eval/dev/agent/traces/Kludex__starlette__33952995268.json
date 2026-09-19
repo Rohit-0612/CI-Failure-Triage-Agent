@@ -1,0 +1,86 @@
+{
+  "case_id": "Kludex__starlette__33952995268",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 7469,
+    "output_tokens": 607
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789832001.297751,
+      "chars": 18845,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file starlette/middleware/base.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ],
+      "truncated": [
+        "changes since the last passing run (pr_merge_base)",
+        "file starlette/middleware/base.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789832197.844405,
+      "seconds": 196.5,
+      "input_tokens": 7469,
+      "output_tokens": 607,
+      "answer": "TYPE_ERROR"
+    },
+    {
+      "node": "validate",
+      "at": 1789832197.854122,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789832197.855689,
+      "failure_type": "TYPE_ERROR",
+      "evidence_items": 5,
+      "files": [
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TYPE_ERROR",
+    "root_cause": "Incompatible types in assignment",
+    "confidence": 1.0,
+    "suspect_files": [
+      "starlette/middleware/base.py",
+      "starlette/testclient.py"
+    ],
+    "evidence": [
+      {
+        "quote": "starlette/middleware/base.py:189: error: Incompatible types in assignment (expression has type \"tuple[MemoryObjectSendStream[MutableMapping[str, Any]], MemoryObjectReceiveStream[MutableMapping[str, Any]]]\", variable has type \"create_memory_object_stream[MutableMapping[str, Any]]\")  [assignment]",
+        "why": "This error indicates that the type of the expression being assigned to a variable is not compatible with the type of the variable."
+      },
+      {
+        "quote": "starlette/testclient.py:137: error: Incompatible types in assignment (expression has type \"tuple[MemoryObjectSendStream[MutableMapping[str, Any]], MemoryObjectReceiveStream[MutableMapping[str, Any]]]\", variable has type \"create_memory_object_stream[MutableMapping[str, Any]]\")  [assignment]",
+        "why": "This error indicates that the type of the expression being assigned to a variable is not compatible with the type of the variable."
+      },
+      {
+        "quote": "starlette/testclient.py:139: error: Incompatible types in assignment (expression has type \"tuple[MemoryObjectSendStream[MutableMapping[str, Any]], MemoryObjectReceiveStream[MutableMapping[str, Any]]]\", variable has type \"create_memory_object_stream[MutableMapping[str, Any]]\")  [assignment]",
+        "why": "This error indicates that the type of the expression being assigned to a variable is not compatible with the type of the variable."
+      },
+      {
+        "quote": "starlette/testclient.py:497: error: Incompatible types in assignment (expression has type \"tuple[MemoryObjectSendStream[MutableMapping[str, Any] | None], MemoryObjectReceiveStream[MutableMapping[str, Any] | None]]\", variable has type \"create_memory_object_stream[MutableMapping[str, Any] | None]\")  [assignment]",
+        "why": "This error indicates that the type of the expression being assigned to a variable is not compatible with the type of the variable."
+      },
+      {
+        "quote": "starlette/testclient.py:499: error: Incompatible types in assignment (expression has type \"tuple[MemoryObjectSendStream[MutableMapping[str, Any]], MemoryObjectReceiveStream[MutableMapping[str, Any]]]\", variable has type \"create_memory_object_stream[MutableMapping[str, Any]]\")  [assignment]",
+        "why": "This error indicates that the type of the expression being assigned to a variable is not compatible with the type of the variable."
+      }
+    ]
+  }
+}

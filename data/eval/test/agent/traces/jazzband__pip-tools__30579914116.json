@@ -1,0 +1,94 @@
+{
+  "case_id": "jazzband__pip-tools__30579914116",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 14246,
+    "output_tokens": 518
+  },
+  "problems": [
+    "1 quote(s) are not verbatim, e.g. \"FAILED tests/test_repository_pypi.py::test_name_collision - FileNotFoundError: [Errno 2] No such file or directory: '\\\\\\\\C\""
+  ],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789837748.85279,
+      "chars": 22963,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/test_repository_pypi.py (at the failed commit)",
+        "file piptools/repositories/pypi.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/test_repository_pypi.py (at the failed commit)",
+        "file piptools/repositories/pypi.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789837880.420212,
+      "seconds": 131.6,
+      "input_tokens": 7087,
+      "output_tokens": 244,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789837880.4245162,
+      "problems": [
+        "1 quote(s) are not verbatim, e.g. \"FAILED tests/test_repository_pypi.py::test_name_collision - FileNotFoundError: [Errno 2] No such file or directory: '\\\\\\\\C\""
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789838019.646932,
+      "seconds": 139.2,
+      "input_tokens": 7159,
+      "output_tokens": 274,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789838019.650548,
+      "problems": [
+        "1 quote(s) are not verbatim, e.g. \"FAILED tests/test_repository_pypi.py::test_name_collision - FileNotFoundError: [Errno 2] No such file or directory: '\\\\\\\\C\""
+      ]
+    },
+    {
+      "node": "finalize",
+      "at": 1789838019.652417,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 1,
+      "files": [
+        "tests/test_repository_pypi.py",
+        "piptools/repositories/pypi.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "FileNotFoundError: [Errno 2] No such file or directory: '\\\\C:\\Users\\runneradmin\\AppData\\Local\\Temp\\pytest-of-unknown\\pytest-0\\popen-gw2\\test_name_collision0\\test_package_1\\main.zip'",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_repository_pypi.py",
+      "piptools/repositories/pypi.py"
+    ],
+    "evidence": [
+      {
+        "quote": "ERROR: Coverage failure: total of 98 is less than fail-under=99",
+        "why": "This indicates that the test suite did not meet the required coverage threshold."
+      },
+      {
+        "quote": "FAILED tests/test_repository_pypi.py::test_name_collision - FileNotFoundError: [Errno 2] No such file or directory: '\\\\C:\\Users\\runneradmin\\AppData\\Local\\Temp\\pytest-of-unknown\\pytest-0\\popen-gw2\\test_name_collision0\\test_package_1\\main.zip'",
+        "why": "This is the specific test that failed, and the error message indicates a file not found issue."
+      }
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "case_id": "pypa__pip__34001199872",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 9137,
+    "output_tokens": 277
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789834305.7723038,
+      "chars": 13109,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file benchmarks/__init__.py (at the failed commit)",
+        "file benchmarks/_graphs.py (at the failed commit)"
+      ],
+      "truncated": [
+        "changes since the last passing run (pr_merge_base)",
+        "file benchmarks/_graphs.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789834365.1386392,
+      "seconds": 59.4,
+      "input_tokens": 3967,
+      "output_tokens": 111,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789834365.144682,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1789834365.146902,
+      "chars": 17895
+    },
+    {
+      "node": "propose",
+      "at": 1789834421.563216,
+      "seconds": 56.4,
+      "input_tokens": 5170,
+      "output_tokens": 166,
+      "answer": "POLICY_CHECK_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789834421.5667999,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789834421.572643,
+      "failure_type": "POLICY_CHECK_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "AI_POLICY.md",
+        ".github/scripts/check_pr_template.sh"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "POLICY_CHECK_FAILURE",
+    "root_cause": "The 'AI_POLICY.md' checkbox in the PR checklist must be checked.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "AI_POLICY.md",
+      ".github/scripts/check_pr_template.sh"
+    ],
+    "evidence": [
+      {
+        "quote": "##[error]The 'AI_POLICY.md' checkbox in the PR checklist must be checked.",
+        "why": "This error message directly states that the 'AI_POLICY.md' checkbox must be checked."
+      },
+      {
+        "quote": "##[error]Process completed with exit code 1.",
+        "why": "The process exited with a non-zero status, indicating a failure."
+      }
+    ]
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "case_id": "pytest-dev__pytest__34229763670",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 7442,
+    "output_tokens": 160
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789830463.3148491,
+      "chars": 22433,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file testing/code/test_excinfo.py (at the failed commit)",
+        "file testing/_py/test_local.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file testing/code/test_excinfo.py (at the failed commit)",
+        "file testing/_py/test_local.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789830605.791569,
+      "seconds": 142.5,
+      "input_tokens": 7442,
+      "output_tokens": 160,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789830605.8035588,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789830605.808838,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "testing/code/test_excinfo.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "TypeError: expected str, got NoneType object",
+    "confidence": 1.0,
+    "suspect_files": [
+      "testing/code/test_excinfo.py"
+    ],
+    "evidence": [
+      {
+        "quote": "TypeError: expected str, got NoneType object",
+        "why": "This is the error message that indicates the failure."
+      },
+      {
+        "quote": "FAILED testing/code/test_excinfo.py::TestTraceback_f_g_h::test_getreprcrash_syntax_error_none_msg - TypeError: expected str, got NoneType object",
+        "why": "This line shows the specific test that failed and the error message."
+      }
+    ]
+  }
+}

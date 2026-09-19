@@ -1,0 +1,67 @@
+{
+  "case_id": "pypa__setuptools__34529467000",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 5269,
+    "output_tokens": 136
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789837047.176339,
+      "chars": 17055,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file .bumpversion.cfg (at the failed commit)",
+        "file build_with_distutils_stubs.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789837129.625978,
+      "seconds": 82.4,
+      "input_tokens": 5269,
+      "output_tokens": 136,
+      "answer": "TYPE_ERROR"
+    },
+    {
+      "node": "validate",
+      "at": 1789837129.6322482,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789837129.633798,
+      "failure_type": "TYPE_ERROR",
+      "evidence_items": 1,
+      "files": [
+        "setuptools/discovery.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TYPE_ERROR",
+    "root_cause": "Type 'Mapping[str, str]' is not assignable to return type 'dict[str, str]'",
+    "confidence": 1.0,
+    "suspect_files": [
+      "setuptools/discovery.py"
+    ],
+    "evidence": [
+      {
+        "quote": "Type \"Mapping[str, str]\" is not assignable to return type \"dict[str, str]\"",
+        "why": "This error message directly indicates a type mismatch between a `Mapping[str, str]` and a `dict[str, str]`."
+      }
+    ]
+  }
+}

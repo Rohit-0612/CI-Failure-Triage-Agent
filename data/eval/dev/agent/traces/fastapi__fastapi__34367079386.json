@@ -1,0 +1,91 @@
+{
+  "case_id": "fastapi__fastapi__34367079386",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 10971,
+    "output_tokens": 332
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789833171.008107,
+      "chars": 17694,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file fastapi/dependencies/utils.py (at the failed commit)",
+        "file tests/test_dependency_overrides_rebuild.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file fastapi/dependencies/utils.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789833258.287015,
+      "seconds": 87.3,
+      "input_tokens": 4735,
+      "output_tokens": 173,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789833258.291574,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1789833258.2950761,
+      "chars": 24256
+    },
+    {
+      "node": "propose",
+      "at": 1789833342.1781409,
+      "seconds": 83.9,
+      "input_tokens": 6236,
+      "output_tokens": 159,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789833342.1818419,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789833342.190725,
+      "failure_type": "UNKNOWN",
+      "evidence_items": 2,
+      "files": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_dependency_overrides_rebuild.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "UNKNOWN",
+    "root_cause": "The evidence does not provide enough information to determine the root cause of the failure.",
+    "confidence": 0.0,
+    "suspect_files": [
+      "fastapi/dependencies/utils.py",
+      "tests/test_dependency_overrides_rebuild.py"
+    ],
+    "evidence": [
+      {
+        "quote": "uv run coverage report --fail-under=100",
+        "why": "This command is being run, but no errors are reported."
+      },
+      {
+        "quote": "Name                                                                                       Stmts   Miss  Cover   Missing",
+        "why": "This output indicates that all tests passed with 100% coverage."
+      }
+    ]
+  }
+}

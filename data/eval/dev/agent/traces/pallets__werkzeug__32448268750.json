@@ -1,0 +1,67 @@
+{
+  "case_id": "pallets__werkzeug__32448268750",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 5522,
+    "output_tokens": 146
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789830149.589758,
+      "chars": 17615,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/middleware/test_dispatcher.py (at the failed commit)",
+        "file tests/middleware/test_http_proxy.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789830223.974185,
+      "seconds": 74.4,
+      "input_tokens": 5522,
+      "output_tokens": 146,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789830223.994818,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789830223.9956322,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 1,
+      "files": [
+        "tests/test_formparser.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "The test `tests/test_formparser.py::TestFormParser::test_limiting` failed because it did not raise the expected `RequestEntityTooLarge` exception. This indicates that the request data was not being limited as expected.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_formparser.py"
+    ],
+    "evidence": [
+      {
+        "quote": "Failed: DID NOT RAISE RequestEntityTooLarge",
+        "why": "This line indicates that the test did not raise the expected exception, which is the root cause of the failure."
+      }
+    ]
+  }
+}

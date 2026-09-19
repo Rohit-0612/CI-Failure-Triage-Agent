@@ -1,0 +1,88 @@
+{
+  "case_id": "pylint-dev__pylint__34293586675",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 7192,
+    "output_tokens": 418
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789836869.181407,
+      "chars": 10511,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file pylint/checkers/exceptions.py (at the failed commit)",
+        "file tests/functional/b/bad_exception_cause.py (at the failed commit)"
+      ],
+      "truncated": [
+        "file pylint/checkers/exceptions.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789836924.803117,
+      "seconds": 55.6,
+      "input_tokens": 3356,
+      "output_tokens": 203,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789836924.8075478,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1789836924.80948,
+      "chars": 12593
+    },
+    {
+      "node": "propose",
+      "at": 1789836961.673516,
+      "seconds": 36.9,
+      "input_tokens": 3836,
+      "output_tokens": 215,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789836961.678574,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789836961.681718,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "tests/functional/b/bad_exception_cause.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "The test `unknown_bases` in `tests/functional/b/bad_exception_cause.py` failed because it attempted to raise an exception with a cause that could not be inferred, which triggered the `bad-exception-cause` rule.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/functional/b/bad_exception_cause.py"
+    ],
+    "evidence": [
+      {
+        "quote": "raise IndexError from object() # [bad-exception-cause]",
+        "why": "This line in the test file attempts to raise an exception with a cause that cannot be inferred, triggering the `bad-exception-cause` rule."
+      },
+      {
+        "quote": "class MyException(bala):",
+        "why": "This class definition in the test file is causing an import error, which is not directly related to the failure but indicates a potential issue with the test setup."
+      }
+    ]
+  }
+}

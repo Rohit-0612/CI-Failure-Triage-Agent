@@ -1,0 +1,74 @@
+{
+  "case_id": "pallets__flask__30566227095",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 7763,
+    "output_tokens": 246
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789828747.327438,
+      "chars": 22180,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (first_parent)",
+        "file tests/test_blueprints.py (at the failed commit)",
+        "file tests/test_views.py (at the failed commit)"
+      ],
+      "truncated": [
+        "changes since the last passing run (first_parent)",
+        "file tests/test_blueprints.py (at the failed commit)",
+        "file tests/test_views.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789828903.629376,
+      "seconds": 156.3,
+      "input_tokens": 7763,
+      "output_tokens": 246,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789828903.644534,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789828903.649218,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "tests/test_blueprints.py",
+        "tests/test_views.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "DeprecationWarning: The 'parse_cache_control_header' function is deprecated and will be removed in Werkzeug 3.3. Use the 'CacheControl.from_header' method instead.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_blueprints.py",
+      "tests/test_views.py"
+    ],
+    "evidence": [
+      {
+        "quote": "DeprecationWarning: The 'parse_cache_control_header' function is deprecated and will be removed in Werkzeug 3.3. Use the 'CacheControl.from_header' method instead.",
+        "why": "This warning is directly related to the deprecation of the 'parse_cache_control_header' function in Werkzeug."
+      },
+      {
+        "quote": "DeprecationWarning: The 'parse_set_header' function is deprecated and will be removed in Werkzeug 3.3. Use the 'HeaderSet.from_header' method instead.",
+        "why": "This warning is directly related to the deprecation of the 'parse_set_header' function in Werkzeug."
+      }
+    ]
+  }
+}

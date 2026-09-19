@@ -1,0 +1,80 @@
+{
+  "case_id": "python__mypy__34302312010",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 4726,
+    "output_tokens": 250
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789836098.768049,
+      "chars": 18062,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file mypy/test/testcheck.py (at the failed commit)",
+        "file mypy/semanal.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file mypy/test/testcheck.py (at the failed commit)",
+        "file mypy/semanal.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789836179.146239,
+      "seconds": 80.4,
+      "input_tokens": 4726,
+      "output_tokens": 250,
+      "answer": "TYPE_ERROR"
+    },
+    {
+      "node": "validate",
+      "at": 1789836179.15643,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789836179.159393,
+      "failure_type": "TYPE_ERROR",
+      "evidence_items": 3,
+      "files": [
+        "mypy/semanal.py",
+        "test-data/unit/check-selftype.test",
+        "mypy/test/testcheck.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TYPE_ERROR",
+    "root_cause": "The code attempted to use the 'Self' type in a type parameter bound or constraint, which is not allowed.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "mypy/semanal.py",
+      "test-data/unit/check-selftype.test",
+      "mypy/test/testcheck.py"
+    ],
+    "evidence": [
+      {
+        "quote": "main:5: error: Self type cannot be used in a type parameter bound",
+        "why": "This error message indicates that the 'Self' type was used in a type parameter bound, which is not allowed."
+      },
+      {
+        "quote": "main:6: error: Self type cannot be used in a type parameter constraint",
+        "why": "This error message indicates that the 'Self' type was used in a type parameter constraint, which is not allowed."
+      },
+      {
+        "quote": "main:5: error: Expected '('",
+        "why": "This error message indicates that there was a syntax error, likely due to the 'Self' type being used incorrectly."
+      }
+    ]
+  }
+}

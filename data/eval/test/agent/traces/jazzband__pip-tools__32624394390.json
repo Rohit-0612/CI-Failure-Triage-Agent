@@ -1,0 +1,76 @@
+{
+  "case_id": "jazzband__pip-tools__32624394390",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 7247,
+    "output_tokens": 199
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789837414.5686882,
+      "chars": 21790,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/test_minimal_upgrade.py (at the failed commit)",
+        "file tests/test_resolver.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/test_resolver.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789837535.434478,
+      "seconds": 120.9,
+      "input_tokens": 7247,
+      "output_tokens": 199,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789837535.438505,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789837535.440371,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "tests/test_cli_compile.py",
+        "tests/test_minimal_upgrade.py",
+        "tests/test_resolver.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "TypeError: unsupported operand type(s) for /: 'str' and 'str'",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_cli_compile.py",
+      "tests/test_minimal_upgrade.py",
+      "tests/test_resolver.py"
+    ],
+    "evidence": [
+      {
+        "quote": "TypeError: unsupported operand type(s) for /: 'str' and 'str'",
+        "why": "This error message indicates that the code attempted to perform a division operation between two strings, which is not allowed in Python."
+      },
+      {
+        "quote": "Failed: Expected exit(0), saw exit(2).",
+        "why": "This indicates that the test expected the command to exit with code 0 (success), but it exited with code 2, which typically indicates a failure."
+      }
+    ]
+  }
+}

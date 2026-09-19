@@ -1,0 +1,68 @@
+{
+  "case_id": "pypa__pip__34111503185",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 2734,
+    "output_tokens": 174
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789834248.462882,
+      "chars": 8489,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "file src/pip/_internal/network/auth.py (at the failed commit)"
+      ],
+      "truncated": [
+        "file src/pip/_internal/network/auth.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789834305.749981,
+      "seconds": 57.3,
+      "input_tokens": 2734,
+      "output_tokens": 174,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789834305.754803,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789834305.758695,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "src/pip/_internal/network/auth.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "An assertion failed in the test_keyring_cli_outdated_version test, expecting 7 to equal 1.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "src/pip/_internal/network/auth.py"
+    ],
+    "evidence": [
+      {
+        "quote": "AssertionError: assert 7 == 1",
+        "why": "This is the direct evidence of the test failure."
+      },
+      {
+        "quote": "RuntimeError: Keyring util is outdated; must be at least version 25.2.1, please upgrade it",
+        "why": "This error message is related to the test failure and indicates that the keyring utility is not up to date."
+      }
+    ]
+  }
+}

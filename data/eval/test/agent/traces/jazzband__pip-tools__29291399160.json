@@ -1,0 +1,71 @@
+{
+  "case_id": "jazzband__pip-tools__29291399160",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 4681,
+    "output_tokens": 202
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789837535.456037,
+      "chars": 14122,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file tests/test_minimal_upgrade.py (at the failed commit)",
+        "file tests/test_resolver.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file tests/test_resolver.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789837621.8015602,
+      "seconds": 86.3,
+      "input_tokens": 4681,
+      "output_tokens": 202,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789837621.806238,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789837621.807651,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "tests/test_cli_compile.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "AssertionError: assert 1 == 0",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_cli_compile.py"
+    ],
+    "evidence": [
+      {
+        "quote": "E       AssertionError: assert 1 == 0",
+        "why": "This is the direct evidence of the test failure."
+      },
+      {
+        "quote": "E        +  where 1 = <Result <InstallationSubprocessError(reference='subprocess-exited-with-error', message='[green]git checkout -q a57e312...output.', note_stmt='This error originates from a subprocess, and is likely not a problem with pip.', hint_stmt=None)>>.exit_code",
+        "why": "This shows that the subprocess exited with an error, which is likely the cause of the assertion failure."
+      }
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "case_id": "pypa__pipx__29308101290",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 7770,
+    "output_tokens": 132
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789834549.1679091,
+      "chars": 24366,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file tests/test_upgrade.py (at the failed commit)",
+        "file tests/test_reinstall.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file tests/test_upgrade.py (at the failed commit)",
+        "file tests/test_reinstall.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789834666.037845,
+      "seconds": 116.9,
+      "input_tokens": 7770,
+      "output_tokens": 132,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789834666.04293,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789834666.0449002,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 1,
+      "files": [
+        "tests/test_install.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "AssertionError: assert (WindowsPath(...toml'), False) == (WindowsPath(....toml'), True)",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_install.py"
+    ],
+    "evidence": [
+      {
+        "quote": "AssertionError: assert (WindowsPath(...toml'), False) == (WindowsPath(....toml'), True)",
+        "why": "This assertion failure indicates that the test expected a file to exist, but it did not."
+      }
+    ]
+  }
+}

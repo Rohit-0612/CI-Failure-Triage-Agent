@@ -1,0 +1,74 @@
+{
+  "case_id": "psf__requests__29765540818",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 4893,
+    "output_tokens": 189
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789833795.889917,
+      "chars": 17061,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file src/requests/adapters.py (at the failed commit)",
+        "file tests/test_requests.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file src/requests/adapters.py (at the failed commit)",
+        "file tests/test_requests.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789833905.694307,
+      "seconds": 109.8,
+      "input_tokens": 4893,
+      "output_tokens": 189,
+      "answer": "NETWORK_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789833905.704032,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789833905.709013,
+      "failure_type": "NETWORK_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "src/requests/adapters.py",
+        "tests/test_requests.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "NETWORK_FAILURE",
+    "root_cause": "The test failed due to an SSL error when trying to connect to '127.0.0.1' on port 54791. The error message indicates that the SSL connection was unexpectedly closed.",
+    "confidence": 0.9,
+    "suspect_files": [
+      "src/requests/adapters.py",
+      "tests/test_requests.py"
+    ],
+    "evidence": [
+      {
+        "quote": "urllib3.exceptions.SSLError: EOF occurred in violation of protocol (_ssl.c:2427)",
+        "why": "This is the specific error that caused the test to fail."
+      },
+      {
+        "quote": "tests/test_requests.py::TestRequests::test_pyopenssl_redirect",
+        "why": "This is the failing test case."
+      }
+    ]
+  }
+}

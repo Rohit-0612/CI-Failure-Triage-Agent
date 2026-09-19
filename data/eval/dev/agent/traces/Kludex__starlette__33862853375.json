@@ -1,0 +1,41 @@
+{
+  "case_id": "Kludex__starlette__33862853375",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0
+  },
+  "problems": [
+    "model did not return JSON: Unterminated string starting at: line 11 column 16 (char 276)"
+  ],
+  "error": "model did not return JSON: Unterminated string starting at: line 11 column 16 (char 276)",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789832197.862418,
+      "chars": 17508,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/test_websockets.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file tests/test_websockets.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789832280.899562,
+      "error": "model did not return JSON: Unterminated string starting at: line 11 column 16 (char 276)",
+      "raw": "{\n  \"failure_type\": \"TEST_FAILURE\",\n  \"root_cause\": \"A test failed because the WebSocketDenialResponse was raised unexpectedly.\",\n  \"confidence\": 1.0,\n  \"suspect_files\": [\n    \"tests/test_websockets.py\",\n    \"starlette/testclient.py\"\n  ],\n  \"evidence\": [\n    {\n      \"quote\": \"tests/test_websockets.py:320: \\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _"
+    }
+  ],
+  "raw_proposal": null
+}

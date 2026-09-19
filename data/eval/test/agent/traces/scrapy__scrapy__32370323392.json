@@ -1,0 +1,73 @@
+{
+  "case_id": "scrapy__scrapy__32370323392",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 7217,
+    "output_tokens": 256
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789835218.9732008,
+      "chars": 22465,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file tests/test_crawl.py (at the failed commit)",
+        "file tests/test_crawler_subprocess.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file tests/test_crawl.py (at the failed commit)",
+        "file tests/test_crawler_subprocess.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789835332.9534788,
+      "seconds": 114.0,
+      "input_tokens": 7217,
+      "output_tokens": 256,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789835332.9572768,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789835332.958827,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "tests/test_crawl.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "The test `test_fixed_delay` in `tests/test_crawl.py` failed because the download delay was too small, as asserted by the error message `AssertionError: download delay too small: 0.15757203102111816`. The expected delay was `0.2 * 0.8 = 0.16`.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_crawl.py"
+    ],
+    "evidence": [
+      {
+        "quote": "E       AssertionError: download delay too small: 0.15757203102111816",
+        "why": "This is the assertion that failed, indicating the download delay was too small."
+      },
+      {
+        "quote": "assert 0.15757203102111816 > (0.2 * 0.8)",
+        "why": "This is the assertion that was evaluated, showing the expected delay and the actual delay."
+      }
+    ]
+  }
+}

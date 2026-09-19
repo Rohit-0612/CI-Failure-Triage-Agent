@@ -1,0 +1,75 @@
+{
+  "case_id": "pallets__flask__29881037146",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 6136,
+    "output_tokens": 247
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789829089.421212,
+      "chars": 21182,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/test_appctx.py (at the failed commit)",
+        "file tests/test_async.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file tests/test_appctx.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789829218.797172,
+      "seconds": 129.4,
+      "input_tokens": 6136,
+      "output_tokens": 247,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789829218.8063629,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789829218.811677,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 3,
+      "files": [
+        "tests/test_basic.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "AssertionError: assert 'default' == '<invalid>'",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_basic.py"
+    ],
+    "evidence": [
+      {
+        "quote": "AssertionError: assert 'default' == '<invalid>'",
+        "why": "This is the exact assertion that failed, indicating a mismatch between expected and actual values."
+      },
+      {
+        "quote": "Current server name 'foo.localhost' isn't under configured server name 'dev.local'.",
+        "why": "This warning suggests that the server name being tested does not match the expected server name, which could be causing the assertion to fail."
+      },
+      {
+        "quote": "Current server name '127.0.0.1:3000' isn't under configured server name 'localhost.localdomain:3000'.",
+        "why": "Similar to the previous warning, this indicates a mismatch between the server name being tested and the expected server name, which could be causing the assertion to fail."
+      }
+    ]
+  }
+}

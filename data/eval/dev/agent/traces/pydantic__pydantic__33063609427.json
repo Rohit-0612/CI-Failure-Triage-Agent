@@ -1,0 +1,106 @@
+{
+  "case_id": "pydantic__pydantic__33063609427",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 3,
+  "usage": {
+    "input_tokens": 21915,
+    "output_tokens": 636
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789828422.107274,
+      "chars": 22062,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file docs/plugins/conversion_table.py (at the failed commit)",
+        "file pydantic-core/python/pydantic_core/core_schema.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file docs/plugins/conversion_table.py (at the failed commit)",
+        "file pydantic-core/python/pydantic_core/core_schema.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789828508.745441,
+      "seconds": 86.6,
+      "input_tokens": 6285,
+      "output_tokens": 225,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789828508.751053,
+      "problems": [
+        "these file paths do not appear in the evidence: ['pydantic-core\\\\python\\\\pydantic_core\\\\serializers\\\\test_any.py']"
+      ]
+    },
+    {
+      "node": "repair",
+      "at": 1789828597.533864,
+      "seconds": 88.8,
+      "input_tokens": 6343,
+      "output_tokens": 224,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789828597.538006,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1789828597.538958,
+      "chars": 32696
+    },
+    {
+      "node": "propose",
+      "at": 1789828704.409763,
+      "seconds": 106.9,
+      "input_tokens": 9287,
+      "output_tokens": 187,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789828704.420552,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789828704.426723,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "tests/pydantic_core/serializers/test_any.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "A test failed due to a stack overflow error.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/pydantic_core/serializers/test_any.py"
+    ],
+    "evidence": [
+      {
+        "quote": "Windows fatal exception: stack overflow",
+        "why": "This indicates that a stack overflow occurred, which is a common cause of test failures."
+      },
+      {
+        "quote": "File \"D:\\a\\pydantic\\pydantic\\tests\\pydantic_core\\serializers\\test_any.py\", line 379 in test_fallback_cycle_change",
+        "why": "This line points to the specific test that failed, which is `test_fallback_cycle_change` in `test_any.py`."
+      }
+    ]
+  }
+}

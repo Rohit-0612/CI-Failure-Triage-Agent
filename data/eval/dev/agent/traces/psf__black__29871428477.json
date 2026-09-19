@@ -1,0 +1,84 @@
+{
+  "case_id": "psf__black__29871428477",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 7054,
+    "output_tokens": 312
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789833342.211401,
+      "chars": 8182,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file .pre-commit-config.yaml (at the failed commit)",
+        "file pyproject.toml (at the failed commit)"
+      ],
+      "truncated": [
+        "file pyproject.toml (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789833404.733261,
+      "seconds": 62.5,
+      "input_tokens": 3206,
+      "output_tokens": 155,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789833404.7382321,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1789833404.747576,
+      "chars": 10279
+    },
+    {
+      "node": "propose",
+      "at": 1789833441.168855,
+      "seconds": 36.4,
+      "input_tokens": 3848,
+      "output_tokens": 157,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1789833441.174647,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789833441.175488,
+      "failure_type": "UNKNOWN",
+      "evidence_items": 1,
+      "files": [
+        "CHANGES.md"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "UNKNOWN",
+    "root_cause": "The error message indicates that the PR number '#5247' is missing from the CHANGES.md file. The step is designed to check for this PR number and fail if it is not present.",
+    "confidence": 0.8,
+    "suspect_files": [
+      "CHANGES.md"
+    ],
+    "evidence": [
+      {
+        "quote": "Please add '(#5247)' change line to CHANGES.md (or if appropriate, ask a maintainer to add the 'ci: skip news' label)",
+        "why": "This message is directly from the failed step and indicates the root cause of the failure."
+      }
+    ]
+  }
+}

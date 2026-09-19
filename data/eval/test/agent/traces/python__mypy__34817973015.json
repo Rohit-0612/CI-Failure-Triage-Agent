@@ -1,0 +1,72 @@
+{
+  "case_id": "python__mypy__34817973015",
+  "system": "agent_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 5370,
+    "output_tokens": 160
+  },
+  "problems": [],
+  "error": null,
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1789836024.7377229,
+      "chars": 20123,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file mypy/test/testworker.py (at the failed commit)",
+        "file mypy/build_worker/worker.py (at the failed commit)"
+      ],
+      "truncated": [
+        "changes since the last passing run (pr_merge_base)",
+        "file mypy/test/testworker.py (at the failed commit)",
+        "file mypy/build_worker/worker.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1789836098.754535,
+      "seconds": 74.0,
+      "input_tokens": 5370,
+      "output_tokens": 160,
+      "answer": "LINT_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1789836098.758162,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1789836098.760622,
+      "failure_type": "LINT_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "mypy/test/testworker.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "LINT_FAILURE",
+    "root_cause": "The Ruff linter found an error in the code. Specifically, it flagged an assertion that catches all exceptions without specifying a more specific exception type.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "mypy/test/testworker.py"
+    ],
+    "evidence": [
+      {
+        "quote": "B017 Do not assert blind exception: `Exception`",
+        "why": "This error message directly points to the issue in the code."
+      },
+      {
+        "quote": "with self.assertRaises(Exception):",
+        "why": "This line in the code is causing the Ruff linter to fail."
+      }
+    ]
+  }
+}
