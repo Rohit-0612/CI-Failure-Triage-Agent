@@ -13,10 +13,11 @@ This project is built incrementally. What exists today:
 | 0 | Repository foundation (uv, ruff, pytest, CI) | done |
 | 1 | Real CI-failure dataset miner: 50-case dev split + 25-case held-out test split | done (human label review pending) |
 | 2 | Deterministic rule baseline + evaluation harness | done |
-| 3+ | LangGraph agent, tools, retrieval, fix verification, UI | not started |
+| 3 | LangGraph investigation agent (local model) + prompt-injection defence | done |
+| 4+ | Agent tools, retrieval, fix generation, isolated verification, approval UI, webhooks | not started |
 
-Nothing beyond the table above is implemented yet: there is no LLM, agent, API, database,
-UI or tracing in this repository today.
+Nothing beyond the table above is implemented yet: there is no agent tooling, API, database,
+UI or hosted tracing in this repository today.
 
 ## Setup
 
@@ -134,8 +135,75 @@ How to read this:
 - Dev-split ablation for localization (hit@1): log references only 0.405, changed files only
   0.500, combined 0.571.
 
+## Phase 3: LangGraph investigation agent
+
+An LLM investigator that receives the same `CaseView` and returns the same `Diagnosis` as the
+baseline, so the harness scores both identically.
+
+```bash
+# needs a local model server: ollama serve; ollama pull qwen2.5-coder:7b
+uv run python -m ci_triage.evaluation run --system agent --split dev --resume
+uv run python -m ci_triage.evaluation compare --split test
+```
+
+```
+pack_evidence -> propose -> validate -+-> finalize          (valid)
+                   ^                  +-> repair -> validate (validator found problems)
+                   +-- expand --------+                      (answered UNKNOWN)
+```
+
+- **The critic is code, not another model call.** The validator checks that every quote appears
+  verbatim in the evidence, that file paths are supported by it, that the category is in the
+  taxonomy, and that the answer does not restate the instructions. Its exact complaints go into
+  the repair prompt. Abstention (`UNKNOWN`) is allowed and triggers a retry with more evidence.
+- **Ungrounded output cannot survive.** Quotes are located in the evidence to derive their source;
+  anything not found is dropped, as are unsupported file paths.
+- **Prompt-injection defence** (repository text is attacker-controlled in principle): all untrusted
+  text sits in one block with its delimiters defanged, the instruction hierarchy is explicit, and
+  answers that echo the instructions are rejected. `tests/test_injection.py` pins containment, the
+  rejection path and the absence of instruction leakage, plus an opt-in test against the real model
+  (`pytest -m slow`). It does **not** claim the model can never be talked into the wrong category.
+- Structured output is enforced by JSON-schema-constrained decoding, not by asking nicely.
+- Every case writes a trace (`data/eval/<split>/agent/traces/<case_id>.json`) with nodes, timings,
+  tokens, validator problems and the raw model output.
+
+### Results: agent vs baseline
+
+Model: `qwen2.5-coder:7b` running locally through Ollama (chosen for zero cost, not for quality).
+Reports name the model, e.g. `agent_v1_ollama-qwen2.5-coder-7b`.
+
+| Metric | dev: agent | dev: baseline | **test: agent** | **test: baseline** |
+|---|---|---|---|---|
+| Localization hit@1 | **64.3%** (27/42) | 57.1% (24/42) | **43.5%** (10/23) | **43.5%** (10/23) |
+| Localization hit@3 | 71.4% | 78.6% | 52.2% | 56.5% |
+| Localization MRR | 0.679 | 0.682 | 0.478 | 0.505 |
+| Category accuracy vs auto labels | 48.0% | 94.0% | 72.0% | 80.0% |
+| Evidence grounded | 93/93 | 121/121 | 45/45 | 62/62 |
+| Abstention (UNKNOWN) | 18% | 0% | 20% | 16% |
+| Mean latency / cost | 137 s / $0 | ~0 s / $0 | 131 s / $0 | ~0 s / $0 |
+
+**The honest headline: on held-out repositories the local 7B agent does not beat the rule
+baseline.** It matches it on hit@1 and is slightly behind on hit@3 and MRR, while taking ~131
+seconds per case instead of milliseconds. The dev-split advantage (64.3% vs 57.1%) did not
+generalise — the same lesson the held-out split taught in Phase 2.
+
+Category accuracy is measured against automatic labels, so it mostly measures *agreement with the
+labeler*, not correctness: several agent "mistakes" are taxonomy-boundary calls (formatter failure
+reported as a lint failure), honest abstentions, or cases where the label itself is questionable
+(pipx tests that print pip's own dependency errors). A human review of the labels is still pending.
+
+What this chapter is really worth is the harness around the model: a deterministic validation loop,
+grounding that cannot be bypassed, injection containment, per-case traces, and token/cost
+accounting. Swapping in a hosted model is a second implementation of the `LLMClient` protocol plus
+an environment variable; the measured cost fields are already in every prediction.
+
 ### Known limitations
 
+- Two of 75 cases failed outright: one where the model quoted a long traceback and hit the output
+  token cap mid-JSON, and one that exceeded the 300 s model timeout. Both are counted as errors in
+  the reports rather than hidden.
+- A 7B local model is the weakest link here; these numbers should not be read as what an LLM agent
+  can do on this benchmark, only as what this model does.
 - **A green run is not proof of a causal fix.** Confidence `high` means structural evidence
   (a single commit between red and green, and the same job passing), not that the change is
   semantically confirmed. Example: some pip PR-template failures went green after an
