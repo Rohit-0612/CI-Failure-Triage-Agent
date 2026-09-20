@@ -14,10 +14,12 @@ This project is built incrementally. What exists today:
 | 1 | Real CI-failure dataset miner: 50-case dev split + 25-case held-out test split | done (human label review pending) |
 | 2 | Deterministic rule baseline + evaluation harness | done |
 | 3 | LangGraph investigation agent (local model) + prompt-injection defence | done |
-| 4+ | Agent tools, retrieval, fix generation, isolated verification, approval UI, webhooks | not started |
+| 4 | Repository tools for the agent, pinned to the failed commit | code done, evaluation pending |
+| 5+ | Retrieval, fix generation, isolated verification, approval UI, webhooks | not started |
 
-Nothing beyond the table above is implemented yet: there is no agent tooling, API, database,
-UI or hosted tracing in this repository today.
+Nothing beyond the table above is implemented yet: there is no API, database, UI or hosted
+tracing in this repository today. Phase 4's tools are built and tested but have not yet been
+evaluated on a full split, so no numbers are claimed for them below.
 
 ## Setup
 
@@ -221,6 +223,63 @@ an environment variable; the measured cost fields are already in every predictio
 - For `pull_request` runs GitHub tests a merge commit with the base branch; base-branch
   changes between two runs are not part of the fix diff.
 - The baseline's `confidence` is a fixed per-rule number, not a calibrated probability.
+
+## Phase 4: repository tools
+
+### Deciding what to build, before building it
+
+`hit@1` says how often localization is wrong. It does not say *why*, so it cannot say what to
+build next. This splits every miss by the information the investigator actually held:
+
+```bash
+uv run python -m ci_triage.evaluation headroom --system agent --split dev --detail
+```
+
+| Bucket | dev, agent v1 | Meaning |
+|---|---|---|
+| hit | 64.3% | hit@1 was already correct |
+| reasoning | 4.8% | the gold file's content was in the prompt; the model chose another |
+| **name_only** | **16.7%** | the gold path was visible as a name, its content was never sent |
+| **blind** | **11.9%** | the path was absent entirely, though the file exists at that commit |
+| impossible | 2.4% | the file did not exist at the failed commit |
+
+The two middle rows are what tools or retrieval can reach: **28.6%**. The threshold for
+building them (15%) was written down before the numbers were, and the largest bucket points at
+a specific flaw — the evidence packer must guess two files in advance and guesses wrong in one
+case out of six. A `read_file` tool replaces that guess with a request.
+
+An earlier version of this analysis read "which files had content" from the dataset rather than
+from the pack the model received, counting files the packer had dropped as files the model saw
+and rejected. It reported 14.3% reachable and 19% reasoning failures — the opposite conclusion,
+and below the threshold. `tests/test_headroom.py` pins the corrected behaviour.
+
+### The tools
+
+```bash
+uv run python -m ci_triage.evaluation run --system agent_tools --split dev --limit 15
+```
+
+A gathering loop runs before the diagnosis: `decide -> act -> decide`, up to three lookups,
+then the normal propose/validate/repair cycle. `read_file`, `search_code` and `list_files` are
+the whole allowlist; `run_tests` belongs with Phase 7's isolated environment.
+
+- **Every tool reads the failed commit, and the ref is not a parameter.** The local clone also
+  contains the commit that fixed the failure, so a tool that could be pointed elsewhere would
+  put the answer into the input and invalidate every measurement here. There is no argument to
+  point it with; tests assert that `ref`/`sha`/`commit`/`branch` arguments are ignored and that
+  no tool output contains the fix.
+- **Tool arguments are untrusted**, since they are written by a model that has just read
+  attacker-controlled repository text: absolute paths, `..` and `.git` are refused, and searches
+  are fixed-string rather than regex.
+- **Tool output is untrusted too** — it is repository text arriving through a channel the model
+  chose — so it is sanitised and capped like any other evidence, and appended *inside* the
+  untrusted block.
+- A refused call is a result the model can read, not a lost case; a repeated call ends the
+  gathering loop, because the same request cannot return anything new.
+
+Searching needs file contents, and the clones are blobless. Fetching them one lazy read at a
+time costs ~0.9 s per file; the commit is instead hydrated once with a size-limited filter,
+measured at 1.5 s, after which `git grep` is local.
 
 ### Data provenance
 
