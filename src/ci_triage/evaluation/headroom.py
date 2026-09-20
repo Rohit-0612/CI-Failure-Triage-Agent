@@ -44,9 +44,6 @@ BUCKET_MEANING = {
 # Buckets a tool-using or retrieval-based agent could plausibly recover.
 REACHABLE = ("name_only", "blind")
 
-_FILE_PREFIX = "file "
-_FILE_SUFFIX = " (at the failed commit)"
-
 
 @dataclass
 class CaseAnalysis:
@@ -60,14 +57,11 @@ class CaseAnalysis:
 def packed_file_paths(pack: ev.EvidencePack) -> set[str]:
     """Paths whose *content* the packer actually emitted.
 
-    Read back from the pack rather than from `relevant_files`: the packer keeps only
-    `evidence.MAX_FILES` of them, so the dataset list overstates what the model saw.
+    One definition, shared with the agent (`evidence.packed_paths`): the agent asks the
+    same question to decide what is worth fetching, and two parsers of the same section
+    header would be two chances to answer it differently.
     """
-    return {
-        name[len(_FILE_PREFIX) : -len(_FILE_SUFFIX)]
-        for name in pack.used_chars
-        if name.startswith(_FILE_PREFIX) and name.endswith(_FILE_SUFFIX)
-    }
+    return ev.packed_paths(pack.text)
 
 
 def visible_paths(view: CaseView, evidence_text: str, gold: set[str]) -> set[str]:

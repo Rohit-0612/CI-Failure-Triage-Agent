@@ -182,11 +182,18 @@ def build_graph(
         return ev.with_sections(state["evidence"], sections)
 
     def decide(state: InvestigationState) -> InvestigationState:
-        """Ask for one tool call, or for the investigation to move on."""
+        """Ask for one tool call, or for the investigation to move on.
+
+        Deliberately not given the full evidence: see `evidence.brief`.
+        """
+        results = state.get("tool_results", [])
+        shown = ev.packed_paths(state["evidence"]) | {
+            str(r.args.get("path")) for r in results if r.ok and r.args.get("path")
+        }
         prompt = build_decide_prompt(
-            state["evidence"],
-            [result.as_prompt_section() for result in state.get("tool_results", [])],
-            max_tool_calls - len(state.get("tool_results", [])),
+            ev.brief(state["case"], shown),
+            [result.as_prompt_section() for result in results],
+            max_tool_calls - len(results),
         )
         return _call(state, prompt, "decide", schema=ACTION_SCHEMA, key="action")
 
@@ -243,9 +250,13 @@ def build_graph(
 
     def validate(state: InvestigationState) -> InvestigationState:
         if state.get("error"):
+            problem = _problem_for(state)
             return {
-                "problems": [_problem_for(state)],
+                "problems": [problem],
                 "previous_problems": state.get("problems", []),
+                # Recorded like the normal path: a trace that silently skips a node
+                # when the call failed hides exactly the runs worth reading.
+                "trace": record(state, "validate", problems=[problem]),
             }
         problems = _validate(state["case"], _full_evidence(state), state.get("proposal") or {})
         return {
@@ -303,6 +314,12 @@ def build_graph(
                 return "shrink"  # too much prompt for this machine: send less
             if kind == "output" and calls_left and not repeated:
                 return "repair"  # it is alive and can be told what was wrong
+            if kind == "output" and calls_left and not state.get("shrunk"):
+                # Truncated twice despite being told why. The schema's maxLength is
+                # advisory - Ollama's constrained decoding does not enforce it - so
+                # asking again in the same words will not help. A smaller prompt does
+                # shorten the answer, so spend the last attempt on that instead.
+                return "shrink"
             # Out of options. Fall back on an earlier good proposal if we have one.
             return "finalize" if proposal else END
 

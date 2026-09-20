@@ -332,6 +332,67 @@ def test_a_quote_from_a_fetched_file_counts_as_evidence(case, toolbox):
     assert evidence[0].location == "src/app.py"
 
 
+def test_the_gathering_prompt_names_what_is_and_is_not_already_available(case, toolbox):
+    """Seen on the live model: it spent all three lookups re-reading the two files it
+    had already been given, while the file that broke the build - known to the case,
+    dropped by the packer's two-file limit - was never asked for. It was being asked
+    to infer what it had not been shown; now it is told."""
+    final, client = run_with_tools(case, [action("answer"), good_proposal()], toolbox)
+
+    decide_prompt = client.calls[0]["user"]
+    assert "already been given in full" in decide_prompt
+    assert "src/app.py" in decide_prompt  # the packer sent this one
+    assert "NOT seen the contents of" in decide_prompt
+    assert "tests/test_app.py" in decide_prompt  # named by the failure, never sent
+    assert final["diagnosis"] is not None
+
+
+def test_the_gathering_brief_stays_small_on_a_realistic_case(record_dict):
+    """Each gathering turn is a whole model call, and a local model slows down as the
+    prompt grows: 122 s, then 148 s, then 171 s on the run that prompted this.
+
+    Measured on a case the size of a real one - the fixture above is far below either
+    budget, so on it the fixed tool descriptions dominate and prove nothing.
+    """
+    big = CaseRecord.model_validate(
+        record_dict(
+            log_excerpt="E   boom\n" * 5_000,
+            error_lines=["E   boom"],
+            log_referenced_files=["src/app.py", "tests/test_app.py"],
+        )
+    ).visible()
+
+    pack = ev.pack(big)
+    brief = ev.brief(big, shown_paths=ev.packed_paths(pack.text))
+
+    assert len(pack.text) > 5_000  # a pack of realistic size
+    assert len(brief) < len(pack.text) / 5
+    # Still contained: the brief is repository text like everything else.
+    assert brief.count(ev.OPEN_TAG) == 1 and brief.count(ev.CLOSE_TAG) == 1
+
+
+def test_the_gathering_prompt_leaves_the_diff_and_file_bodies_out(case, toolbox):
+    _, client = run_with_tools(case, [action("answer"), good_proposal()], toolbox)
+
+    decide_prompt = client.calls[0]["user"]
+    assert DIFF not in decide_prompt  # the diff is for diagnosing, not for choosing
+    assert decide_prompt.count(ev.OPEN_TAG) == 1 and decide_prompt.count(ev.CLOSE_TAG) == 1
+
+
+def test_a_second_truncated_answer_retries_with_a_smaller_prompt(case):
+    """maxLength is advisory - Ollama ignores it - so repeating the same request in the
+    same words does not help, but asking with less context does shorten the answer."""
+    cut = LLMOutputError("model did not return JSON: Unterminated string")
+    final, client = run(case, [cut, cut, good_proposal()], max_llm_calls=4)
+
+    nodes = [step["node"] for step in final["trace"]]
+    assert nodes.count("validate") == 3  # every attempt is visible, failures included
+    assert "shrink_evidence" in nodes
+    assert final["budget"] == ev.SHRUNK_BUDGET_CHARS
+    assert final["diagnosis"].failure_type == C.TEST_FAILURE
+    assert len(client.calls) == 3
+
+
 def test_repeating_a_lookup_stops_the_gathering_loop(case, toolbox):
     """Seen on the live model: read_file with no path, three times, 232 s wasted.
 

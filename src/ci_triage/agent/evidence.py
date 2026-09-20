@@ -34,6 +34,19 @@ MAX_FILES = 2
 _TAG_RE = re.compile(r"</?untrusted_evidence>", re.IGNORECASE)
 _CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 
+FILE_SECTION = "file {path} (at the failed commit)"
+_FILE_SECTION_RE = re.compile(r"^## file (?P<path>.+) \(at the failed commit\)$", re.MULTILINE)
+
+
+def packed_paths(evidence_text: str) -> set[str]:
+    """Paths whose *content* this evidence text actually carries.
+
+    Read back from the text, not from the case: the packer keeps only `MAX_FILES` of
+    the case's relevant files, so the case's own list overstates what the model saw.
+    Getting this wrong once already inverted an analysis (see evaluation/headroom.py).
+    """
+    return {match.group("path") for match in _FILE_SECTION_RE.finditer(evidence_text)}
+
 
 @dataclass
 class EvidencePack:
@@ -100,10 +113,60 @@ def pack(case: CaseView, budget_chars: int = DEFAULT_BUDGET_CHARS) -> EvidencePa
     files = [f for f in inp.relevant_files if f.content.strip()][:MAX_FILES]
     for file in files:
         body = file.content[:MAX_FILE_CHARS]
-        add(f"file {file.path} (at the failed commit)", body, 0.16)
+        add(FILE_SECTION.format(path=file.path), body, 0.16)
 
     pack_.text = f"{OPEN_TAG}\n" + "\n\n".join(parts) + f"\n{CLOSE_TAG}"
     return pack_
+
+
+def brief(case: CaseView, shown_paths: set[str], budget_chars: int = 3_000) -> str:
+    """A small summary for the gathering loop: what failed, and what can be fetched.
+
+    Deciding which file to look at does not need the diff and the file bodies, and
+    sending them is expensive twice over: the prompt grows with every tool result, and
+    a local 7B model slows down and rambles as it grows. Measured on one real case,
+    the three gathering turns took 122 s, 148 s and 171 s with the full pack attached.
+
+    The listed paths matter more than the size, though. That same run spent all three
+    lookups re-reading the two files it had already been given, while the file that
+    actually broke - known to the case, dropped by the packer's two-file limit - was
+    never asked for. The model was being asked to infer what it had not been shown;
+    here it is simply told.
+    """
+    inp = case.input
+    signature = inp.error_signature
+    missing = sorted(_candidate_paths(case) - shown_paths)
+    facts = [
+        f"repository: {case.repo.full_name}",
+        f"failed job: {case.failure.job_name} / step: {case.failure.failed_step_name or '?'}",
+        f"error signature: {signature.exception_type}: {signature.message}"
+        if signature
+        else "error signature: none extracted",
+        f"failing tests: {', '.join(inp.failing_tests[:10]) or 'none reported'}",
+    ]
+    sections = [
+        "## what failed\n" + "\n".join(facts),
+        "## error lines from the failed step\n" + "\n".join(inp.error_lines[:25]),
+        "## files you have already been given in full (do not ask for these again)\n"
+        + ("\n".join(f"- {path}" for path in sorted(shown_paths)) or "- none"),
+        "## paths named in this failure that you have NOT seen the contents of\n"
+        + ("\n".join(f"- {path}" for path in missing[:25]) or "- none"),
+    ]
+    body = sanitize("\n\n".join(section for section in sections if section.strip()))
+    if len(body) > budget_chars:
+        body = body[:budget_chars] + "\n[... brief truncated ...]"
+    return f"{OPEN_TAG}\n{body}\n{CLOSE_TAG}"
+
+
+def _candidate_paths(case: CaseView) -> set[str]:
+    """Paths this case names at failure time. No hindsight: all of it is input."""
+    inp = case.input
+    paths = set(inp.log_referenced_files)
+    paths.update(f.path for f in inp.relevant_files)
+    if inp.breaking_window:
+        paths.update(inp.breaking_window.files_changed)
+    paths.update(test.split("::", 1)[0] for test in inp.failing_tests)
+    return {path for path in paths if path.strip()}
 
 
 def with_sections(evidence_text: str, sections: list[str]) -> str:
