@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Any
 
 from ci_triage.agent.evidence import CLOSE_TAG, OPEN_TAG
+from ci_triage.agent.tools import TOOL_DESCRIPTIONS, TOOL_NAMES
 from ci_triage.taxonomy import FailureCategory
 
 # One long quote can consume the whole output budget and cut the JSON mid-string
@@ -104,6 +105,58 @@ def build_user_prompt(evidence_text: str) -> str:
         f"{evidence_text}\n\n"
         "Remember: quote evidence verbatim, use only file paths that appear above, and reply "
         "with JSON only."
+    )
+
+
+ACTION_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        # Deliberately flat. A nested "answer" object would let one schema cover both
+        # the tool call and the diagnosis, but small local models produce nested
+        # constrained JSON badly, and the diagnosis already has a schema of its own.
+        "action": {"type": "string", "enum": [*TOOL_NAMES, "answer"]},
+        "path": {"type": "string"},
+        "pattern": {"type": "string"},
+        "reason": {"type": "string"},
+    },
+    # `path` and `pattern` are required even though each action uses only one of them.
+    # Observed on the live model: with them optional, constrained decoding happily
+    # emitted {"action": "read_file", "reason": ...} with no path at all, and three
+    # gathering turns (232 s) were spent being refused for the same missing argument.
+    # Requiring the field makes the decoder write one; an unused field is ignored.
+    "required": ["action", "path", "pattern", "reason"],
+}
+
+
+def build_decide_prompt(evidence_text: str, tool_results: list[str], calls_left: int) -> str:
+    """Ask for one tool call, or for the investigation to move to the diagnosis.
+
+    Note what is *not* offered: no argument names a commit, branch or ref. Every tool
+    reads the failed commit, so the model cannot ask to see the repository's future.
+    """
+    tools = "\n".join(f"- {TOOL_DESCRIPTIONS[name]}" for name in TOOL_NAMES)
+    gathered = (
+        "\n\n".join(tool_results) if tool_results else "(you have not looked anything up yet)"
+    )
+    budget = (
+        f"You may make {calls_left} more tool call(s)."
+        if calls_left > 0
+        else 'You have no tool calls left; answer with "answer".'
+    )
+    return (
+        "You are investigating a CI failure. Before diagnosing it you may look things "
+        "up in the repository as it was at the failed commit.\n\n"
+        f"Available tools:\n{tools}\n"
+        "- answer - stop looking things up and write the diagnosis.\n\n"
+        f"{budget}\n"
+        "Choose 'answer' as soon as you can identify the file that caused the failure. "
+        "Look something up when the log names a file you have not been shown, or when "
+        "you need to find where a symbol in the error comes from.\n"
+        'Always send "path" and "pattern"; use "" for the one the action does not need. '
+        "If a lookup was refused, do not repeat it - fix the arguments or move on.\n\n"
+        f"Evidence so far:\n{evidence_text}\n\n"
+        f"What you have looked up so far:\n{gathered}\n\n"
+        "Reply with JSON only: the action, its arguments, and a short reason."
     )
 
 

@@ -104,3 +104,20 @@ def pack(case: CaseView, budget_chars: int = DEFAULT_BUDGET_CHARS) -> EvidencePa
 
     pack_.text = f"{OPEN_TAG}\n" + "\n\n".join(parts) + f"\n{CLOSE_TAG}"
     return pack_
+
+
+def with_sections(evidence_text: str, sections: list[str]) -> str:
+    """Append tool results *inside* the untrusted block.
+
+    Putting them after the closing tag would quietly promote whatever a tool read out
+    of the repository to the same standing as our own instructions - which is exactly
+    the boundary this block exists to draw. The sections are already sanitized by the
+    toolbox; re-running it here is cheap and keeps the invariant local.
+    """
+    if not sections:
+        return evidence_text
+    body = "\n\n".join(sanitize(section) for section in sections)
+    if evidence_text.endswith(CLOSE_TAG):
+        head = evidence_text[: -len(CLOSE_TAG)].rstrip("\n")
+        return f"{head}\n\n{body}\n{CLOSE_TAG}"
+    return f"{evidence_text}\n\n{body}"

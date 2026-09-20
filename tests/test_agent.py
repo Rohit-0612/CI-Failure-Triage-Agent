@@ -242,6 +242,159 @@ def test_confidence_is_clamped_and_unknown_category_falls_back(case):
     assert final["diagnosis"].confidence == 1.0
 
 
+# ------------------------------------------------------------------ tool gathering
+
+
+def action(name, **args):
+    return {"action": name, "reason": "because", **args}
+
+
+def run_with_tools(case, responses, toolbox, **kwargs):
+    client = FakeLLM(responses=responses)
+    graph = build_graph(client, toolbox=toolbox, **kwargs)
+    return graph.invoke({"case": case.visible()}), client
+
+
+def test_the_agent_can_read_a_file_it_was_never_sent(case, toolbox):
+    """The biggest measured bucket: the log names a file the packer did not include."""
+    final, client = run_with_tools(
+        case,
+        [action("read_file", path="src/app.py"), action("answer"), good_proposal()],
+        toolbox,
+    )
+
+    assert [call.name for call in toolbox.calls] == ["read_file"]
+    assert final["diagnosis"].failure_type == C.TEST_FAILURE
+    # The file's content reached the diagnosing call, not just the gathering loop.
+    assert "return a - b" in client.calls[-1]["user"]
+
+
+def test_tool_results_land_inside_the_untrusted_block(case, toolbox):
+    """Outside it, repository text would sit at the same level as our instructions."""
+    final, client = run_with_tools(
+        case, [action("read_file", path="src/app.py"), action("answer"), good_proposal()], toolbox
+    )
+
+    prompt = client.calls[-1]["user"]
+    body = prompt[prompt.index(ev.OPEN_TAG) : prompt.index(ev.CLOSE_TAG)]
+    # The section header is unique to tool output, unlike the file's own lines, which
+    # also appear in the diff the packer already sent.
+    assert "result of read_file" in body
+    assert prompt.count(ev.OPEN_TAG) == 1 and prompt.count(ev.CLOSE_TAG) == 1
+    assert final["diagnosis"] is not None
+
+
+def test_gathering_stops_at_the_tool_budget(case, toolbox):
+    """A model that only ever wants another lookup must still produce an answer,
+    and must not be asked "what next?" once there is no budget left to answer with."""
+    wants_more = [action("list_files"), action("list_files")]
+    final, client = run_with_tools(case, [*wants_more, good_proposal()], toolbox, max_tool_calls=2)
+
+    assert len(final["tool_results"]) == 2
+    assert final["diagnosis"].failure_type == C.TEST_FAILURE
+    # Two decides and the diagnosis: the third scripted lookup is never asked for,
+    # because with no budget left there is nothing to ask.
+    assert len(client.calls) == 3
+    assert [step["node"] for step in final["trace"]].count("decide") == 2
+
+
+def test_tool_turns_do_not_consume_the_repair_budget(case, toolbox):
+    """Looking things up must not spend the attempts reserved for fixing the answer."""
+    bad = good_proposal(evidence=[{"quote": "not in the evidence", "why": "x"}])
+    final, client = run_with_tools(
+        case,
+        [action("read_file", path="src/app.py"), action("answer"), bad, bad, bad],
+        toolbox,
+        max_llm_calls=2,
+    )
+
+    assert final["answer_calls"] == 2  # propose + one repair, tool turns excluded
+    assert len(client.calls) == 4  # 2 decide + 2 answer attempts
+    assert final["llm_calls"] == 4  # but the cost column counts every call
+
+
+def test_a_quote_from_a_fetched_file_counts_as_evidence(case, toolbox):
+    """Without this the tools could never contribute evidence: every quote from a
+    tool read would be dropped by the grounding step as unlocatable."""
+    # A line that exists only in the fetched file - not in the log or the diff, so
+    # the grounding step can only place it if it looks at the tool results.
+    proposal = good_proposal(
+        evidence=[{"quote": "31      # padding", "why": "the file body"}],
+        suspect_files=["src/app.py"],
+    )
+    final, _ = run_with_tools(
+        case, [action("read_file", path="src/app.py"), action("answer"), proposal], toolbox
+    )
+
+    evidence = final["diagnosis"].evidence
+    assert [item.excerpt for item in evidence] == ["31      # padding"]
+    assert evidence[0].source == "source_file"
+    assert evidence[0].location == "src/app.py"
+
+
+def test_repeating_a_lookup_stops_the_gathering_loop(case, toolbox):
+    """Seen on the live model: read_file with no path, three times, 232 s wasted.
+
+    A request identical to an earlier one returns what it returned before, so there is
+    nothing to gain and a slow model call to lose.
+    """
+    same = action("read_file", path="src/app.py")
+    final, client = run_with_tools(case, [same, same, good_proposal()], toolbox, max_tool_calls=3)
+
+    # The budget allowed three lookups; gathering stopped after the repeat.
+    assert len(final["tool_results"]) == 2
+    assert final["gathering_stuck"] is True
+    assert len(client.calls) == 3  # two decides and the diagnosis
+    assert final["diagnosis"].failure_type == C.TEST_FAILURE
+
+
+def test_the_same_tool_with_different_arguments_is_not_a_repeat(case, toolbox):
+    """Reading two different files is progress, not a loop."""
+    final, _ = run_with_tools(
+        case,
+        [
+            action("read_file", path="src/app.py"),
+            action("read_file", path="tests/test_app.py"),
+            action("answer"),
+            good_proposal(),
+        ],
+        toolbox,
+        max_tool_calls=3,
+    )
+
+    assert len(final["tool_results"]) == 2
+    assert not final.get("gathering_stuck")
+
+
+def test_a_refused_tool_call_does_not_end_the_investigation(case, toolbox):
+    """The model can mistype a path; that is a result to read, not a lost case."""
+    final, _ = run_with_tools(
+        case,
+        [action("read_file", path="../../etc/passwd"), action("answer"), good_proposal()],
+        toolbox,
+    )
+
+    assert final["tool_results"][0].ok is False
+    assert final["diagnosis"].failure_type == C.TEST_FAILURE
+
+
+def test_a_failed_decide_call_falls_through_to_the_diagnosis(case, toolbox):
+    """The gathering loop is an optimisation; losing it must not lose the case."""
+    final, _ = run_with_tools(case, [LLMTimeout("timed out"), good_proposal()], toolbox)
+
+    assert final.get("tool_results", []) == []  # nothing was gathered
+    assert final["diagnosis"].failure_type == C.TEST_FAILURE
+
+
+def test_without_a_toolbox_the_graph_never_gathers(case):
+    """agent_v2 stays exactly as it was, so it remains a control for agent_tools."""
+    final, client = run(case, [good_proposal()])
+
+    assert "tool_results" not in final or final["tool_results"] == []
+    assert len(client.calls) == 1
+    assert not any(step["node"] in ("decide", "act") for step in final["trace"])
+
+
 # ----------------------------------------------------------------------- investigator
 
 

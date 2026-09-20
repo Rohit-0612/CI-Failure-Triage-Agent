@@ -1,8 +1,83 @@
 """Shared test fixtures."""
 
+import subprocess
+from pathlib import Path
+
 import pytest
 
 RED, GREEN = "a" * 40, "b" * 40
+
+# A marker that exists only in the commit that fixed the failure. Any tool output
+# containing it has reached into the repository's future, which would put the answer
+# into the investigator's input and invalidate every measurement in this project.
+FIX_MARKER = "SECRET_FIX_TOKEN_THAT_ONLY_EXISTS_AFTER_THE_FIX"
+
+
+def git(cwd: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@example.com", *args],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+def git_commit(cwd: Path, files: dict[str, str], message: str) -> str:
+    for name, content in files.items():
+        path = cwd / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+    git(cwd, "add", "-A")
+    git(cwd, "commit", "-q", "-m", message)
+    return git(cwd, "rev-parse", "HEAD")
+
+
+@pytest.fixture(scope="session")
+def broken_project(tmp_path_factory):
+    """A real repository: a commit that breaks a test, then the commit that fixes it.
+
+    Everything a test needs comes back in the dict, including the commit helper:
+    `tests/` is not a package, so test modules cannot import from conftest directly.
+    """
+    src = tmp_path_factory.mktemp("remote")
+    git(src, "init", "-q", "-b", "main")
+    git(src, "config", "uploadpack.allowAnySHA1InWant", "true")
+    git(src, "config", "uploadpack.allowFilter", "true")
+    red = git_commit(
+        src,
+        {
+            "src/app.py": "def add(a, b):\n" + "    # padding\n" * 30 + "    return a - b\n",
+            "tests/test_app.py": (
+                "from src.app import add\n\n\ndef test_add():\n    assert add(2, 3) == 5\n"
+            ),
+            "docs/guide.md": "# Guide\n",
+        },
+        "break add",
+    )
+    green = git_commit(
+        src,
+        {"src/app.py": f"# {FIX_MARKER}\ndef add(a, b):\n    return a + b\n"},
+        f"fix add {FIX_MARKER}",
+    )
+    return {
+        "src": src,
+        "red": red,
+        "green": green,
+        "fix_marker": FIX_MARKER,
+        "commit": git_commit,
+    }
+
+
+@pytest.fixture
+def toolbox(broken_project, tmp_path):
+    """A Toolbox pinned to the broken commit, over a clone that also holds the fix."""
+    from ci_triage.agent.tools import Toolbox
+    from ci_triage.git_local import GitRepo
+
+    repo = GitRepo.open_or_init(tmp_path, "o/r", remote_url=str(broken_project["src"]))
+    repo.fetch([broken_project["red"], broken_project["green"]])
+    return Toolbox(repo=repo, sha=broken_project["red"])
 
 
 def _record(**input_overrides) -> dict:

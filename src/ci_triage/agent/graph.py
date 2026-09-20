@@ -8,6 +8,11 @@
                        |                 |
                        +-- shrink -------+                         (the call timed out)
 
+With a toolbox, a gathering loop runs first and its results are appended to the evidence:
+
+    pack_evidence -> decide -+-> act -> decide     (a tool, while the budget lasts)
+                             +-> propose ...      (the model is ready, or the budget is out)
+
 The validator is deterministic code, not another model call: it checks that quotes exist
 verbatim in the evidence, that file paths were not invented, that the category is in the
 taxonomy, and that the answer does not restate the instructions. That is what makes the
@@ -31,12 +36,15 @@ from langgraph.graph import END, StateGraph
 
 from ci_triage.agent import evidence as ev
 from ci_triage.agent.prompts import (
+    ACTION_SCHEMA,
     MAX_QUOTE_CHARS,
     OUTPUT_SCHEMA,
     SYSTEM_PROMPT,
+    build_decide_prompt,
     build_repair_prompt,
     build_user_prompt,
 )
+from ci_triage.agent.tools import TOOL_NAMES, Toolbox, ToolResult
 from ci_triage.diagnosis import MAX_EXCERPT_CHARS, Diagnosis, Evidence
 from ci_triage.llm import LLMClient, LLMError, LLMOutputError, LLMTimeout, Usage
 from ci_triage.miner.schema import CaseView
@@ -47,6 +55,10 @@ logger = logging.getLogger(__name__)
 MAX_LLM_CALLS = 3
 MAX_EVIDENCE_ITEMS = 6
 MAX_AFFECTED_FILES = 10
+# Tool turns are budgeted separately from answer attempts: looking things up must not
+# eat the repair attempts. Three is what the headroom analysis calls for - one read for
+# a file the log already named, or a search plus a read when it did not.
+MAX_TOOL_CALLS = 3
 # Phrases from our own instructions; if they come back in the answer, the model is
 # echoing the prompt (usually because injected text told it to).
 _INSTRUCTION_MARKERS = ("untrusted_evidence", "Security rules", "system prompt")
@@ -68,6 +80,14 @@ class InvestigationState(TypedDict, total=False):
     error_kind: str
     # Set once the evidence has been shrunk after a timeout, so we never grow it again.
     shrunk: bool
+    # Attempts that tried to produce a diagnosis; tool turns are counted separately
+    # so that looking things up cannot consume the repair budget.
+    answer_calls: int
+    action: dict[str, Any]
+    tool_results: list[ToolResult]
+    # Set when the model asked for something it had already asked for: gathering
+    # stops, because repeating a request cannot return anything new.
+    gathering_stuck: bool
 
 
 def _error_kind(exc: LLMError) -> str:
@@ -78,8 +98,19 @@ def _error_kind(exc: LLMError) -> str:
     return "transport"
 
 
-def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
-    """Compile the investigation graph for one LLM client."""
+def build_graph(
+    client: LLMClient,
+    max_llm_calls: int = MAX_LLM_CALLS,
+    *,
+    toolbox: Toolbox | None = None,
+    max_tool_calls: int = MAX_TOOL_CALLS,
+):
+    """Compile the investigation graph for one LLM client.
+
+    Without a `toolbox` this is the Phase 3 graph unchanged, so its numbers stay
+    reproducible. With one, a gathering loop runs first and its results are appended
+    to the evidence, inside the untrusted block.
+    """
 
     def record(state: InvestigationState, node: str, **detail: Any) -> list[dict[str, Any]]:
         return [*state.get("trace", []), {"node": node, "at": time.time(), **detail}]
@@ -99,15 +130,21 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
             ),
         }
 
-    def _call(state: InvestigationState, prompt: str, node: str) -> InvestigationState:
+    def _call(
+        state: InvestigationState,
+        prompt: str,
+        node: str,
+        *,
+        schema: dict[str, Any] = OUTPUT_SCHEMA,
+        key: str = "proposal",
+    ) -> InvestigationState:
         started = time.perf_counter()
+        is_answer = key == "proposal"
         try:
-            proposal, usage = client.complete_json(
-                system=SYSTEM_PROMPT, user=prompt, schema=OUTPUT_SCHEMA
-            )
+            reply, usage = client.complete_json(system=SYSTEM_PROMPT, user=prompt, schema=schema)
         except LLMError as exc:
             kind = _error_kind(exc)
-            return {
+            failed: InvestigationState = {
                 "error": str(exc),
                 "error_kind": kind,
                 "llm_calls": state.get("llm_calls", 0) + 1,
@@ -115,8 +152,11 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
                     state, node, error=str(exc), error_kind=kind, raw=exc.raw_output[:500]
                 ),
             }
-        return {
-            "proposal": proposal,
+            if is_answer:
+                failed["answer_calls"] = state.get("answer_calls", 0) + 1
+            return failed
+        done: InvestigationState = {
+            key: reply,
             # Clear any earlier failure: without this a stale error survives a
             # successful retry and validate() reports it as a fresh problem.
             "error": "",
@@ -129,15 +169,55 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
                 seconds=round(time.perf_counter() - started, 1),
                 input_tokens=usage.input_tokens,
                 output_tokens=usage.output_tokens,
-                answer=proposal.get("failure_type"),
+                answer=reply.get("failure_type") or reply.get("action"),
             ),
+        }
+        if is_answer:
+            done["answer_calls"] = state.get("answer_calls", 0) + 1
+        return done
+
+    def _full_evidence(state: InvestigationState) -> str:
+        """Base evidence plus anything the tools returned, all inside one block."""
+        sections = [result.as_prompt_section() for result in state.get("tool_results", [])]
+        return ev.with_sections(state["evidence"], sections)
+
+    def decide(state: InvestigationState) -> InvestigationState:
+        """Ask for one tool call, or for the investigation to move on."""
+        prompt = build_decide_prompt(
+            state["evidence"],
+            [result.as_prompt_section() for result in state.get("tool_results", [])],
+            max_tool_calls - len(state.get("tool_results", [])),
+        )
+        return _call(state, prompt, "decide", schema=ACTION_SCHEMA, key="action")
+
+    def act(state: InvestigationState) -> InvestigationState:
+        """Run the requested tool. Refusals come back as readable results, not crashes."""
+        assert toolbox is not None
+        action = state.get("action") or {}
+        name = str(action.get("action", ""))
+        args = {
+            key: action[key]
+            for key in ("path", "pattern", "start_line", "end_line")
+            if action.get(key) not in (None, "")
+        }
+        previous = state.get("tool_results", [])
+        # Asking for exactly what was already asked for returns exactly what came back:
+        # no new information, one more slow model call. Observed on the live model,
+        # which requested read_file with no path three times in a row and spent 232 s
+        # being refused for the same reason. Same lesson as the repair loop (BUG-007).
+        repeated = any(call.name == name and call.args == args for call in previous)
+        result = toolbox.run(name, args)
+        return {
+            "tool_results": [*previous, result],
+            "gathering_stuck": repeated,
+            "trace": record(state, "act", repeated=repeated, **result.as_trace()),
         }
 
     def propose(state: InvestigationState) -> InvestigationState:
-        return _call(state, build_user_prompt(state["evidence"]), "propose")
+        return _call(state, build_user_prompt(_full_evidence(state)), "propose")
 
     def repair(state: InvestigationState) -> InvestigationState:
-        prompt = build_repair_prompt(state["evidence"], state.get("problems", []))
+        prompt = build_repair_prompt(_full_evidence(state), state.get("problems", []))
         return _call(state, prompt, "repair")
 
     def expand(state: InvestigationState) -> InvestigationState:
@@ -167,7 +247,7 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
                 "problems": [_problem_for(state)],
                 "previous_problems": state.get("problems", []),
             }
-        problems = _validate(state["case"], state["evidence"], state.get("proposal") or {})
+        problems = _validate(state["case"], _full_evidence(state), state.get("proposal") or {})
         return {
             "problems": problems,
             "previous_problems": state.get("problems", []),
@@ -178,7 +258,9 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
         proposal = state.get("proposal")
         if proposal is None:
             return {"trace": record(state, "finalize", ok=False)}
-        diagnosis = _to_diagnosis(state["case"], state["evidence"], proposal)
+        diagnosis = _to_diagnosis(
+            state["case"], _full_evidence(state), proposal, state.get("tool_results", [])
+        )
         return {
             "diagnosis": diagnosis,
             "trace": record(
@@ -190,9 +272,27 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
             ),
         }
 
+    def route_decide(state: InvestigationState) -> str:
+        """Gathering loop: another tool call, or move to the diagnosis."""
+        if state.get("error"):
+            return "propose"  # a failed decide is not worth a retry; answer with what we have
+        action = (state.get("action") or {}).get("action")
+        return "act" if action in TOOL_NAMES else "propose"
+
+    def route_after_act(state: InvestigationState) -> str:
+        """Only ask again if there is something left to ask for, and if asking helps.
+
+        Asking "what next?" with a budget of zero costs a full model call to be told
+        what we already know - ~30-60 s of local inference per case for nothing. And a
+        model that just repeated a request will repeat it again.
+        """
+        if state.get("gathering_stuck"):
+            return "propose"
+        return "decide" if len(state.get("tool_results", [])) < max_tool_calls else "propose"
+
     def route(state: InvestigationState) -> str:
         proposal = state.get("proposal") or {}
-        calls_left = state.get("llm_calls", 0) < max_llm_calls
+        calls_left = state.get("answer_calls", 0) < max_llm_calls
         problems = state.get("problems") or []
         repeated = problems == state.get("previous_problems")
 
@@ -235,7 +335,16 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
     graph.add_node("shrink", shrink)
     graph.add_node("finalize", finalize)
     graph.set_entry_point("pack_evidence")
-    graph.add_edge("pack_evidence", "propose")
+    if toolbox is None:
+        graph.add_edge("pack_evidence", "propose")
+    else:
+        graph.add_node("decide", decide)
+        graph.add_node("act", act)
+        graph.add_edge("pack_evidence", "decide")
+        graph.add_conditional_edges("decide", route_decide, {"act": "act", "propose": "propose"})
+        graph.add_conditional_edges(
+            "act", route_after_act, {"decide": "decide", "propose": "propose"}
+        )
     graph.add_edge("propose", "validate")
     graph.add_edge("repair", "validate")
     graph.add_edge("expand", "propose")
@@ -338,7 +447,9 @@ def _validate(case: CaseView, evidence_text: str, proposal: dict[str, Any]) -> l
 # ----------------------------------------------------------------------- output mapping
 
 
-def _locate(case: CaseView, quote: str) -> tuple[str, str] | None:
+def _locate(
+    case: CaseView, quote: str, tool_results: list[ToolResult] | None = None
+) -> tuple[str, str] | None:
     """Where does this quote come from? Also serves as the grounding check."""
     inp = case.input
     if quote in inp.log_excerpt or any(quote in line for line in inp.error_lines):
@@ -354,14 +465,26 @@ def _locate(case: CaseView, quote: str) -> tuple[str, str] | None:
     for file in inp.relevant_files:
         if quote in file.content:
             return "source_file", file.path
+    # A file the agent fetched itself is evidence like any other - without this, every
+    # quote from a tool read would be dropped as ungrounded and the tools would be
+    # unable to contribute evidence at all.
+    for result in tool_results or []:
+        if result.ok and quote in result.content:
+            path = result.args.get("path")
+            return "source_file", str(path) if path else f"{result.name} result"
     return None
 
 
-def _to_diagnosis(case: CaseView, evidence_text: str, proposal: dict[str, Any]) -> Diagnosis:
+def _to_diagnosis(
+    case: CaseView,
+    evidence_text: str,
+    proposal: dict[str, Any],
+    tool_results: list[ToolResult] | None = None,
+) -> Diagnosis:
     items: list[Evidence] = []
     for entry in proposal.get("evidence") or []:
         quote = str(entry.get("quote", "")).strip()
-        located = _locate(case, quote) if quote else None
+        located = _locate(case, quote, tool_results) if quote else None
         if located is None:
             continue  # ungrounded quotes are dropped, never reported as evidence
         source, location = located

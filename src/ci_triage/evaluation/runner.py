@@ -42,6 +42,7 @@ class SystemRun:
     name: str
     analyze: SystemFn
     usage_of: Callable[[], Usage] | None = None
+    tool_calls_of: Callable[[], int] | None = None
 
 
 def _baseline_system(trace_dir: Path | None = None) -> SystemRun:
@@ -56,9 +57,27 @@ def _agent_system(trace_dir: Path | None = None) -> SystemRun:
     return SystemRun(investigator.name, investigator.analyze, lambda: investigator.last_usage)
 
 
+def _agent_tools_system(trace_dir: Path | None = None) -> SystemRun:
+    """The same agent, allowed to read the repository at the failed commit.
+
+    Kept as a separate system rather than an upgrade of `agent`, so that "did the tools
+    help?" has an answer: without an unchanged control there is nothing to compare to.
+    """
+    from ci_triage.agent import run as agent_run
+
+    investigator = agent_run.from_env(trace_dir, tools=True)
+    return SystemRun(
+        investigator.name,
+        investigator.analyze,
+        lambda: investigator.last_usage,
+        lambda: investigator.last_tool_calls,
+    )
+
+
 SYSTEMS: dict[str, Callable[[Path | None], SystemRun]] = {
     "baseline": _baseline_system,
     "agent": _agent_system,
+    "agent_tools": _agent_tools_system,
 }
 
 # Failures whose "fix window" is not a code repair (a metadata edit, a rerun, the network
@@ -126,6 +145,7 @@ def run_system(
                 diagnosis=diagnosis,
                 error=error,
                 latency_ms=round((time.perf_counter() - started) * 1000, 3),
+                tool_calls=run.tool_calls_of() if run.tool_calls_of else 0,
                 llm_calls=usage.calls,
                 input_tokens=usage.input_tokens,
                 output_tokens=usage.output_tokens,

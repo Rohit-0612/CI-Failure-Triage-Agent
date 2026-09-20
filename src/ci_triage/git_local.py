@@ -174,6 +174,63 @@ class GitRepo:
         out = self._git("ls-tree", "-r", "--name-only", validate_sha(sha))
         return [line for line in out.splitlines() if line]
 
+    def hydrate(self, sha: str) -> None:
+        """Download this commit's file contents in one packfile.
+
+        Our clones are blobless, so file contents arrive one lazy fetch at a time -
+        about 0.9 s each. Searching a tree that way means one network round trip per
+        file (~12 minutes on a 800-file repository), which is BUG-005 again. Fetching
+        the commit once without the blob filter costs ~1.5 s and makes every later
+        read and search local.
+
+        The size limit keeps large binaries out; anything above it still resolves
+        lazily if something actually asks for it.
+        """
+        self._git(
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "--depth=1",
+            "--filter=blob:limit=200k",
+            "origin",
+            validate_sha(sha),
+        )
+
+    def grep(
+        self, sha: str, pattern: str, *, path_glob: str | None = None, max_results: int = 40
+    ) -> list[str]:
+        """Fixed-string search at a commit: "path:line:text" rows.
+
+        Fixed string, not regex: the pattern comes from a model that has just read
+        attacker-controlled repository text, and a search is not worth handing it a
+        regex engine. `-I` skips binary files; the per-file cap stops one generated
+        file from filling the whole answer.
+        """
+        args = [
+            "grep",
+            "--no-color",
+            "-n",
+            "-I",
+            "-F",
+            "--max-count=3",
+            "-e",
+            pattern,
+            validate_sha(sha),
+        ]
+        if path_glob:
+            args += ["--", path_glob]
+        try:
+            out = self._git(*args)
+        except GitError:
+            return []  # git grep exits non-zero when nothing matched
+        rows = []
+        for line in out.splitlines():
+            # Output is "<sha>:<path>:<line>:<text>"; the sha prefix is noise here.
+            rows.append(line[len(sha) + 1 :] if line.startswith(f"{sha}:") else line)
+            if len(rows) >= max_results:
+                break
+        return rows
+
     def read_file(self, sha: str, path: str, max_chars: int) -> tuple[str, bool] | None:
         """File content at a commit, or None if absent/binary."""
         try:
