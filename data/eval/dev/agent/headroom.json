@@ -1,0 +1,649 @@
+{
+  "cases_scored": 42,
+  "buckets": {
+    "hit": 27,
+    "reasoning": 2,
+    "name_only": 7,
+    "blind": 5,
+    "impossible": 1
+  },
+  "share": {
+    "hit": 0.643,
+    "reasoning": 0.048,
+    "name_only": 0.167,
+    "blind": 0.119,
+    "impossible": 0.024
+  },
+  "tools_reachable": 12,
+  "tools_reachable_share": 0.286,
+  "hit_at_1": 0.643,
+  "ceiling_if_reachable_recovered": 0.929,
+  "per_case": [
+    {
+      "case_id": "pydantic__pydantic__33082044287",
+      "bucket": "name_only",
+      "gold_files": [
+        "tests/test_schema_gather.py"
+      ],
+      "predicted": [
+        "pydantic-core/python/pydantic_core/_pydantic_core.pyi",
+        "pydantic-core/python/pydantic_core/_pydantic_core/_schema_gather.pyi"
+      ],
+      "content_sent": [
+        "pydantic-core/python/pydantic_core/_pydantic_core/__init__.pyi",
+        "pydantic-core/python/pydantic_core/_pydantic_core/_schema_gather.pyi"
+      ]
+    },
+    {
+      "case_id": "pydantic__pydantic__33066070414",
+      "bucket": "hit",
+      "gold_files": [
+        ".github/workflows/ci.yml"
+      ],
+      "predicted": [
+        ".github/workflows/ci.yml",
+        "pydantic-core/tests/test_garbage_collection.py"
+      ],
+      "content_sent": [
+        ".github/workflows/ci.yml",
+        "pydantic-core/tests/test_garbage_collection.py"
+      ]
+    },
+    {
+      "case_id": "pydantic__pydantic__33063609427",
+      "bucket": "blind",
+      "gold_files": [
+        "pydantic-core/src/recursion_guard.rs"
+      ],
+      "predicted": [
+        "tests/pydantic_core/serializers/test_any.py"
+      ],
+      "content_sent": [
+        "docs/plugins/conversion_table.py",
+        "pydantic-core/python/pydantic_core/core_schema.py"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__30566227095",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_blueprints.py",
+        "tests/test_views.py"
+      ],
+      "predicted": [
+        "tests/test_blueprints.py",
+        "tests/test_views.py"
+      ],
+      "content_sent": [
+        "tests/test_blueprints.py",
+        "tests/test_views.py"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__33236247623",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_basic.py"
+      ],
+      "predicted": [
+        "tests/test_basic.py"
+      ],
+      "content_sent": [
+        "src/flask/sansio/app.py",
+        "src/flask/sansio/scaffold.py"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__29883670931",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_basic.py",
+        "tests/test_blueprints.py"
+      ],
+      "predicted": [
+        "tests/test_basic.py",
+        "tests/test_blueprints.py"
+      ],
+      "content_sent": [
+        "src/flask/sansio/app.py",
+        "tests/test_basic.py"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__29881037146",
+      "bucket": "hit",
+      "gold_files": [
+        "src/flask/sansio/app.py",
+        "tests/test_basic.py",
+        "tests/test_blueprints.py"
+      ],
+      "predicted": [
+        "tests/test_basic.py"
+      ],
+      "content_sent": [
+        "tests/test_appctx.py",
+        "tests/test_async.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34602162027",
+      "bucket": "hit",
+      "gold_files": [
+        "src/click/core.py",
+        "tests/test_arguments.py",
+        "tests/test_deprecations.py",
+        "tests/test_options.py"
+      ],
+      "predicted": [
+        "tests/test_options.py"
+      ],
+      "content_sent": [
+        "src/click/core.py",
+        "tests/test_arguments.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34458415260",
+      "bucket": "hit",
+      "gold_files": [
+        "src/click/core.py"
+      ],
+      "predicted": [
+        "src/click/core.py"
+      ],
+      "content_sent": [
+        "src/click/core.py",
+        "src/click/types.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34216472101",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/typing/typing_path.py"
+      ],
+      "predicted": [
+        "tests/typing/typing_path.py"
+      ],
+      "content_sent": [
+        "src/click/types.py",
+        "tests/test_types/test_Path.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34144555748",
+      "bucket": "hit",
+      "gold_files": [
+        "src/click/_termui_impl.py"
+      ],
+      "predicted": [
+        "src/click/_termui_impl.py"
+      ],
+      "content_sent": [
+        "src/click/_termui_impl.py",
+        "tests/test_termui.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__34727220107",
+      "bucket": "name_only",
+      "gold_files": [
+        "tests/test_filter_default_cases.py"
+      ],
+      "predicted": [
+        "src/jinja2/sandbox.py",
+        "src/jinja2/_identifier.py",
+        "src/jinja2/runtime.py"
+      ],
+      "content_sent": [
+        "src/jinja2/_identifier.py",
+        "src/jinja2/sandbox.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__33422506702",
+      "bucket": "name_only",
+      "gold_files": [
+        "src/jinja2/utils.py",
+        "tests/test_filters.py"
+      ],
+      "predicted": [
+        "src/jinja2/_identifier.py",
+        "src/jinja2/sandbox.py",
+        "src/jinja2/utils.py"
+      ],
+      "content_sent": [
+        "src/jinja2/_identifier.py",
+        "src/jinja2/sandbox.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__33386024559",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_tests.py"
+      ],
+      "predicted": [
+        "tests/test_tests.py"
+      ],
+      "content_sent": [
+        "src/jinja2/tests.py",
+        "tests/test_api.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__33192404723",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_filters.py"
+      ],
+      "predicted": [
+        "tests/test_filters.py"
+      ],
+      "content_sent": [
+        "tests/test_filters.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__32588590937",
+      "bucket": "hit",
+      "gold_files": [
+        "src/werkzeug/routing/matcher.py"
+      ],
+      "predicted": [
+        "src/werkzeug/routing/matcher.py"
+      ],
+      "content_sent": [
+        "src/werkzeug/routing/matcher.py",
+        "tests/test_routing.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__32448268750",
+      "bucket": "hit",
+      "gold_files": [
+        "src/werkzeug/formparser.py",
+        "tests/test_formparser.py"
+      ],
+      "predicted": [
+        "tests/test_formparser.py"
+      ],
+      "content_sent": [
+        "tests/middleware/test_dispatcher.py",
+        "tests/middleware/test_http_proxy.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__31436830127",
+      "bucket": "hit",
+      "gold_files": [
+        "src/werkzeug/datastructures/etag.py"
+      ],
+      "predicted": [
+        "src/werkzeug/datastructures/etag.py"
+      ],
+      "content_sent": [
+        "src/werkzeug/datastructures/etag.py",
+        "src/werkzeug/http.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__31365392713",
+      "bucket": "hit",
+      "gold_files": [
+        "src/werkzeug/routing/matcher.py"
+      ],
+      "predicted": [
+        "src/werkzeug/routing/matcher.py"
+      ],
+      "content_sent": [
+        "src/werkzeug/routing/matcher.py",
+        "tests/test_routing.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34229763670",
+      "bucket": "hit",
+      "gold_files": [
+        "testing/code/test_excinfo.py"
+      ],
+      "predicted": [
+        "testing/code/test_excinfo.py"
+      ],
+      "content_sent": [
+        "testing/_py/test_local.py",
+        "testing/code/test_excinfo.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34831550034",
+      "bucket": "blind",
+      "gold_files": [
+        "src/_pytest/_code/code.py",
+        "src/_pytest/python.py"
+      ],
+      "predicted": [
+        "testing/test_debugging.py"
+      ],
+      "content_sent": [
+        "testing/python/fixtures.py",
+        "testing/test_debugging.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34187626286",
+      "bucket": "name_only",
+      "gold_files": [
+        "pyproject.toml",
+        "src/_pytest/mark/expression.py",
+        "testing/test_mark_expression.py"
+      ],
+      "predicted": [
+        "testing/code/test_excinfo.py",
+        "src/_pytest/python.py"
+      ],
+      "content_sent": [
+        "src/_pytest/python.py",
+        "testing/code/test_excinfo.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34036818216",
+      "bucket": "hit",
+      "gold_files": [
+        "testing/test_unittest.py"
+      ],
+      "predicted": [
+        "testing/test_unittest.py",
+        "test_module_cleanups_on_success.py"
+      ],
+      "content_sent": [
+        "src/_pytest/logging.py",
+        "src/_pytest/runner.py"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28585552024",
+      "bucket": "hit",
+      "gold_files": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "predicted": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "content_sent": [
+        ".github/workflows/pythonpackage.yml",
+        ".readthedocs.yml"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28386044959",
+      "bucket": "hit",
+      "gold_files": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "predicted": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "content_sent": [
+        ".github/workflows/pythonpackage.yml"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28385515156",
+      "bucket": "hit",
+      "gold_files": [
+        "rich/syntax.py"
+      ],
+      "predicted": [
+        "rich/syntax.py"
+      ],
+      "content_sent": [
+        "benchmarks/benchmarks.py",
+        "rich/syntax.py"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28362378531",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_syntax.py"
+      ],
+      "predicted": [
+        "tests/test_syntax.py"
+      ],
+      "content_sent": [
+        "rich/syntax.py",
+        "tests/test_syntax.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__34682762870",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_staticfiles.py"
+      ],
+      "predicted": [
+        "tests/test_staticfiles.py"
+      ],
+      "content_sent": [
+        "tests/test_staticfiles.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__34032002422",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/middleware/test_base.py"
+      ],
+      "predicted": [
+        "tests/middleware/test_base.py"
+      ],
+      "content_sent": [
+        "starlette/middleware/base.py",
+        "tests/middleware/test_base.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__33952995268",
+      "bucket": "hit",
+      "gold_files": [
+        "pyproject.toml",
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ],
+      "predicted": [
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ],
+      "content_sent": [
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__33862853375",
+      "bucket": "name_only",
+      "gold_files": [
+        "tests/test_testclient.py"
+      ],
+      "predicted": [],
+      "content_sent": [
+        "starlette/testclient.py",
+        "tests/test_websockets.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34936005539",
+      "bucket": "reasoning",
+      "gold_files": [
+        "tests/test_optional_file_list.py"
+      ],
+      "predicted": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_optional_file_list.py"
+      ],
+      "content_sent": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_optional_file_list.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34835273060",
+      "bucket": "blind",
+      "gold_files": [
+        "tests/test_query_cookie_header_model_extra_params.py"
+      ],
+      "predicted": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "content_sent": [
+        "fastapi/dependencies/utils.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34706009509",
+      "bucket": "hit",
+      "gold_files": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "predicted": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_stream_annotated.py"
+      ],
+      "content_sent": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_stream_annotated.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34367079386",
+      "bucket": "reasoning",
+      "gold_files": [
+        "tests/test_dependency_overrides_rebuild.py"
+      ],
+      "predicted": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_dependency_overrides_rebuild.py"
+      ],
+      "content_sent": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_dependency_overrides_rebuild.py"
+      ]
+    },
+    {
+      "case_id": "psf__requests__29765540818",
+      "bucket": "blind",
+      "gold_files": [
+        ".github/workflows/codeql-analysis.yml"
+      ],
+      "predicted": [
+        "src/requests/adapters.py",
+        "tests/test_requests.py"
+      ],
+      "content_sent": [
+        "src/requests/adapters.py",
+        "tests/test_requests.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pipx__29164805804",
+      "bucket": "blind",
+      "gold_files": [
+        "src/pipx/commands/interpreter.py",
+        "tests/test_standalone_interpreter.py"
+      ],
+      "predicted": [
+        "tests/test_runpip.py",
+        "tests/test_environment.py",
+        "src/pipx/commands/environment.py"
+      ],
+      "content_sent": [
+        "tests/test_interpreter.py",
+        "tests/test_runpip.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pipx__29308101290",
+      "bucket": "name_only",
+      "gold_files": [
+        "src/pipx/script.py"
+      ],
+      "predicted": [
+        "tests/test_install.py"
+      ],
+      "content_sent": [
+        "tests/test_reinstall.py",
+        "tests/test_upgrade.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pipx__31639702870",
+      "bucket": "hit",
+      "gold_files": [
+        "src/pipx/standalone_python.py",
+        "testdata/standalone_python_index_20250818.json",
+        "testdata/standalone_python_index_20250828.json",
+        "tests/conftest.py",
+        "tests/helpers.py",
+        "tests/test_install.py",
+        "tests/test_interpreter.py",
+        "tests/test_list.py",
+        "tests/test_standalone_interpreter.py"
+      ],
+      "predicted": [
+        "tests/test_install.py"
+      ],
+      "content_sent": [
+        "tests/test_install.py",
+        "tests/test_interpreter.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pipx__33240510369",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/conftest.py",
+        "tests/test_uninject.py"
+      ],
+      "predicted": [
+        "tests/test_uninject.py"
+      ],
+      "content_sent": [
+        "tests/test_interpreter.py",
+        "tests/test_main.py"
+      ]
+    },
+    {
+      "case_id": "tox-dev__tox__34145727089",
+      "bucket": "impossible",
+      "gold_files": [
+        "typestubs/nturl2path.pyi"
+      ],
+      "predicted": [
+        "src/tox/session/cmd/run/common.py",
+        "src/tox/tox_env/python/pip/req/util.py"
+      ],
+      "content_sent": [
+        "src/tox/execute/api.py",
+        "src/tox/tox_env/api.py"
+      ]
+    },
+    {
+      "case_id": "tox-dev__tox__33809230908",
+      "bucket": "name_only",
+      "gold_files": [
+        "src/tox/config/source/toml_pyproject.py",
+        "tests/config/source/test_toml_tox.py"
+      ],
+      "predicted": [
+        "src/tox/session/cmd/run/common.py",
+        "src/tox/tox_env/python/pip/req/util.py"
+      ],
+      "content_sent": [
+        "src/tox/session/cmd/run/common.py",
+        "src/tox/tox_env/python/pip/req/util.py"
+      ]
+    }
+  ]
+}

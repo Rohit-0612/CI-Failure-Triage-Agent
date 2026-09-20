@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from ci_triage.evaluation.headroom import analyse, format_report
 from ci_triage.evaluation.runner import (
     SYSTEMS,
     evaluate,
@@ -43,6 +44,13 @@ def main(argv: list[str] | None = None) -> None:
     compare = sub.add_parser("compare", help="table of every system's report for a split")
     compare.add_argument("--split", choices=["dev", "test"], default="dev")
 
+    headroom = sub.add_parser(
+        "headroom", help="why localization missed: reasoning vs missing information"
+    )
+    headroom.add_argument("--system", choices=sorted(SYSTEMS), default="agent")
+    headroom.add_argument("--split", choices=["dev", "test"], default="dev")
+    headroom.add_argument("--detail", action="store_true", help="list the cases in each bucket")
+
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
@@ -59,6 +67,22 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(f"no cases found for split {args.split!r}")
     out_dir = args.data_dir / "eval" / args.split / args.system
     predictions_path = out_dir / "predictions.jsonl"
+
+    if args.command == "headroom":
+        if not predictions_path.exists():
+            raise SystemExit(f"no predictions at {predictions_path}; run the system first")
+        result = analyse(cases, read_jsonl(predictions_path), args.data_dir / "repos")
+        write_report(out_dir / "headroom.json", result)
+        print(format_report(result, args.system, args.split))
+        if args.detail:
+            print()
+            for row in result["per_case"]:
+                if row["bucket"] != "hit":
+                    print(f"  [{row['bucket']}] {row['case_id']}")
+                    print(f"      gold      {row['gold_files']}")
+                    print(f"      predicted {row['predicted']}")
+                    print(f"      content sent to the model: {row['content_sent']}")
+        return
 
     if args.command == "run":
         kept = read_jsonl(predictions_path) if predictions_path.exists() else []
