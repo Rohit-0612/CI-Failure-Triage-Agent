@@ -2,14 +2,21 @@
 
     pack_evidence -> propose -> validate -+-> finalize        (valid)
                        ^                 |
-                       |                 +-> repair  -> validate   (validator found problems)
-                       |                 |
+                       |                 +-> repair  -> validate   (validator found problems,
+                       |                 |                          or the JSON was truncated)
                        +-- expand -------+                         (answered UNKNOWN)
+                       |                 |
+                       +-- shrink -------+                         (the call timed out)
 
 The validator is deterministic code, not another model call: it checks that quotes exist
 verbatim in the evidence, that file paths were not invented, that the category is in the
 taxonomy, and that the answer does not restate the instructions. That is what makes the
 loop worth having - the model gets concrete, checkable feedback instead of "are you sure?".
+
+A failed call is not automatically a failed case. Three causes are told apart because the
+remedies differ: a truncated answer is repairable (say what was wrong and ask again), a
+timeout is repairable by sending less evidence, and an unreachable server is not repairable
+at all. The first dev and test runs lost one case each to the first two.
 
 LLM calls are capped (default 3) because a local 7B model needs ~90 s per call.
 """
@@ -24,13 +31,14 @@ from langgraph.graph import END, StateGraph
 
 from ci_triage.agent import evidence as ev
 from ci_triage.agent.prompts import (
+    MAX_QUOTE_CHARS,
     OUTPUT_SCHEMA,
     SYSTEM_PROMPT,
     build_repair_prompt,
     build_user_prompt,
 )
 from ci_triage.diagnosis import MAX_EXCERPT_CHARS, Diagnosis, Evidence
-from ci_triage.llm import LLMClient, LLMError, Usage
+from ci_triage.llm import LLMClient, LLMError, LLMOutputError, LLMTimeout, Usage
 from ci_triage.miner.schema import CaseView
 from ci_triage.taxonomy import FailureCategory
 
@@ -56,6 +64,18 @@ class InvestigationState(TypedDict, total=False):
     trace: list[dict[str, Any]]
     diagnosis: Diagnosis
     error: str
+    # "timeout" | "output" | "transport" - decides whether asking again can help.
+    error_kind: str
+    # Set once the evidence has been shrunk after a timeout, so we never grow it again.
+    shrunk: bool
+
+
+def _error_kind(exc: LLMError) -> str:
+    if isinstance(exc, LLMTimeout):
+        return "timeout"
+    if isinstance(exc, LLMOutputError):
+        return "output"
+    return "transport"
 
 
 def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
@@ -86,13 +106,21 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
                 system=SYSTEM_PROMPT, user=prompt, schema=OUTPUT_SCHEMA
             )
         except LLMError as exc:
+            kind = _error_kind(exc)
             return {
                 "error": str(exc),
+                "error_kind": kind,
                 "llm_calls": state.get("llm_calls", 0) + 1,
-                "trace": record(state, node, error=str(exc), raw=exc.raw_output[:500]),
+                "trace": record(
+                    state, node, error=str(exc), error_kind=kind, raw=exc.raw_output[:500]
+                ),
             }
         return {
             "proposal": proposal,
+            # Clear any earlier failure: without this a stale error survives a
+            # successful retry and validate() reports it as a fresh problem.
+            "error": "",
+            "error_kind": "",
             "llm_calls": state.get("llm_calls", 0) + 1,
             "usage": state.get("usage", Usage(0, 0, 0)) + usage,
             "trace": record(
@@ -121,9 +149,24 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
             "trace": record(state, "expand_evidence", chars=len(pack.text)),
         }
 
+    def shrink(state: InvestigationState) -> InvestigationState:
+        """The call timed out: re-pack smaller and try once. Never grows again."""
+        pack = ev.pack(state["case"], budget_chars=ev.SHRUNK_BUDGET_CHARS)
+        return {
+            "evidence": pack.text,
+            "budget": ev.SHRUNK_BUDGET_CHARS,
+            "shrunk": True,
+            "error": "",
+            "error_kind": "",
+            "trace": record(state, "shrink_evidence", chars=len(pack.text)),
+        }
+
     def validate(state: InvestigationState) -> InvestigationState:
         if state.get("error"):
-            return {"problems": [state["error"]]}
+            return {
+                "problems": [_problem_for(state)],
+                "previous_problems": state.get("problems", []),
+            }
         problems = _validate(state["case"], state["evidence"], state.get("proposal") or {})
         return {
             "problems": problems,
@@ -150,13 +193,25 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
     def route(state: InvestigationState) -> str:
         proposal = state.get("proposal") or {}
         calls_left = state.get("llm_calls", 0) < max_llm_calls
-        if not proposal:
-            return END  # transport failure with nothing to fall back on
         problems = state.get("problems") or []
+        repeated = problems == state.get("previous_problems")
+
+        kind = state.get("error_kind") or ""
+        if kind:
+            # The model did not answer this turn. Whether to ask again depends on why.
+            if kind == "timeout" and calls_left and not state.get("shrunk"):
+                return "shrink"  # too much prompt for this machine: send less
+            if kind == "output" and calls_left and not repeated:
+                return "repair"  # it is alive and can be told what was wrong
+            # Out of options. Fall back on an earlier good proposal if we have one.
+            return "finalize" if proposal else END
+
+        if not proposal:
+            return END
         if problems:
             # Stop if the repair produced exactly the same complaints: the model is not
             # going to fix it, and each local call costs ~90-180 s.
-            if problems == state.get("previous_problems"):
+            if repeated:
                 return "finalize"
             # Retry while we can; otherwise finalize best-effort - the mapping step drops
             # ungrounded quotes and invented paths anyway.
@@ -165,6 +220,8 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
             proposal.get("failure_type") == FailureCategory.UNKNOWN.value
             and calls_left
             and state.get("budget", 0) < ev.EXPANDED_BUDGET_CHARS
+            # Never grow the prompt again on a machine that already timed out on it.
+            and not state.get("shrunk")
         ):
             return "expand"
         return "finalize"
@@ -175,22 +232,45 @@ def build_graph(client: LLMClient, max_llm_calls: int = MAX_LLM_CALLS):
     graph.add_node("validate", validate)
     graph.add_node("repair", repair)
     graph.add_node("expand", expand)
+    graph.add_node("shrink", shrink)
     graph.add_node("finalize", finalize)
     graph.set_entry_point("pack_evidence")
     graph.add_edge("pack_evidence", "propose")
     graph.add_edge("propose", "validate")
     graph.add_edge("repair", "validate")
     graph.add_edge("expand", "propose")
+    graph.add_edge("shrink", "propose")
     graph.add_conditional_edges(
         "validate",
         route,
-        {"repair": "repair", "expand": "expand", "finalize": "finalize", END: END},
+        {
+            "repair": "repair",
+            "expand": "expand",
+            "shrink": "shrink",
+            "finalize": "finalize",
+            END: END,
+        },
     )
     graph.add_edge("finalize", END)
     return graph.compile()
 
 
 # ----------------------------------------------------------------------- validation
+
+
+def _problem_for(state: InvestigationState) -> str:
+    """Turn a failed call into something the model can act on.
+
+    Handing the raw exception back ("Unterminated string starting at char 276") tells
+    the model nothing it can do differently; naming the cause does.
+    """
+    if state.get("error_kind") == "output":
+        return (
+            "your previous answer was not valid JSON - it was cut off in the middle of a "
+            f"value. Keep every quote under {MAX_QUOTE_CHARS} characters, quote one line "
+            "rather than a whole traceback, and send the complete JSON object."
+        )
+    return str(state.get("error") or "the model did not answer")
 
 
 def known_paths(case: CaseView) -> set[str]:

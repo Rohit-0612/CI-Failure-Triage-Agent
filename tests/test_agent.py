@@ -2,8 +2,9 @@ import pytest
 
 from ci_triage.agent import evidence as ev
 from ci_triage.agent.graph import build_graph
+from ci_triage.agent.prompts import MAX_QUOTE_CHARS
 from ci_triage.agent.run import Investigator
-from ci_triage.llm import FakeLLM, LLMError
+from ci_triage.llm import FakeLLM, LLMError, LLMOutputError, LLMTimeout
 from ci_triage.miner.schema import CaseRecord
 from ci_triage.taxonomy import FailureCategory as C
 
@@ -154,10 +155,85 @@ def test_best_effort_finalize_when_repairs_are_exhausted(case):
     assert diagnosis.failure_type == C.TEST_FAILURE
 
 
-def test_unusable_model_output_leaves_no_diagnosis(case):
-    final, _ = run(case, [LLMError("model did not return JSON", raw_output="sorry")])
+def test_unreachable_server_leaves_no_diagnosis(case):
+    """A dead server cannot be talked round, so there is nothing to retry."""
+    final, client = run(case, [LLMError("ollama unreachable"), good_proposal()])
     assert "diagnosis" not in final
-    assert "JSON" in final["error"]
+    assert len(client.calls) == 1  # no pointless second call
+
+
+# ----------------------------------------------------- recovering from a failed call
+
+
+def test_truncated_json_is_repaired_instead_of_failing_the_case(case):
+    """The starlette case in the first dev run: a long quote cut the JSON mid-string.
+
+    The model is alive and can be told what went wrong, so this must cost a repair,
+    not the whole case.
+    """
+    truncated = LLMOutputError(
+        "model did not return JSON: Unterminated string", raw_output='{"failure_type": "TEST'
+    )
+    final, client = run(case, [truncated, good_proposal()])
+
+    assert final["diagnosis"].failure_type == C.TEST_FAILURE
+    assert len(client.calls) == 2
+    assert "not valid JSON" in client.calls[1]["user"]
+    assert str(MAX_QUOTE_CHARS) in client.calls[1]["user"]  # tells it the actual limit
+
+
+def test_a_repaired_answer_clears_the_earlier_error(case):
+    """A stale error must not survive a successful retry and be reported as a problem."""
+    final, _ = run(case, [LLMOutputError("truncated"), good_proposal()])
+
+    assert not final.get("error")
+    assert final.get("problems") == []
+
+
+def test_timeout_retries_once_with_smaller_evidence(case):
+    """A timeout means the prompt was too big for this machine: send less, ask again."""
+    final, client = run(case, [LLMTimeout("timed out"), good_proposal()])
+
+    assert final["diagnosis"].failure_type == C.TEST_FAILURE
+    assert final["budget"] == ev.SHRUNK_BUDGET_CHARS
+    assert final["shrunk"] is True
+    assert any(step["node"] == "shrink_evidence" for step in final["trace"])
+    # The retry really used the smaller pack. (This fixture is far below either
+    # budget, so the two prompts are equal here; the size test is separate.)
+    assert final["evidence"] == ev.pack(case.visible(), ev.SHRUNK_BUDGET_CHARS).text
+    assert client.calls[1]["user"].count(ev.OPEN_TAG) == 1
+
+
+def test_shrinking_actually_cuts_a_prompt_that_is_over_budget(record_dict):
+    """The retry only helps if the smaller budget really produces a smaller prompt."""
+    oversized = CaseRecord.model_validate(
+        record_dict(log_excerpt="E   boom\n" * 20_000, error_lines=["E   boom"])
+    ).visible()
+
+    normal = ev.pack(oversized, ev.DEFAULT_BUDGET_CHARS)
+    smaller = ev.pack(oversized, ev.SHRUNK_BUDGET_CHARS)
+
+    assert len(smaller.text) < len(normal.text)
+    assert len(smaller.text) <= ev.SHRUNK_BUDGET_CHARS + 1_000
+    assert smaller.truncated  # and it says so, rather than dropping text silently
+
+
+def test_evidence_is_never_grown_again_after_a_timeout(case):
+    """UNKNOWN normally triggers a bigger prompt - but not on a machine that just
+    timed out on the bigger prompt."""
+    unknown = good_proposal(failure_type="UNKNOWN", evidence=[])
+    final, client = run(case, [LLMTimeout("timed out"), unknown, unknown], max_llm_calls=3)
+
+    assert final["budget"] == ev.SHRUNK_BUDGET_CHARS
+    assert not any(step["node"] == "expand_evidence" for step in final["trace"])
+    assert len(client.calls) == 2  # shrink retry only; no expand round
+
+
+def test_a_second_timeout_ends_the_case_rather_than_looping(case):
+    final, client = run(case, [LLMTimeout("timed out"), LLMTimeout("timed out")])
+
+    assert "diagnosis" not in final
+    assert len(client.calls) == 2
 
 
 def test_confidence_is_clamped_and_unknown_category_falls_back(case):
@@ -173,10 +249,21 @@ def test_investigator_writes_a_trace_and_reports_usage(case, tmp_path):
     investigator = Investigator(FakeLLM(responses=[good_proposal()]), trace_dir=tmp_path)
     diagnosis = investigator.analyze(case.visible())
     assert diagnosis.failure_type == C.TEST_FAILURE
-    assert investigator.name.startswith("agent_v1_")
+    assert investigator.name.startswith("agent_v2_")
     trace = (tmp_path / f"{case.case_id}.json").read_text()
     assert "propose" in trace and "finalize" in trace
     assert investigator.last_usage.calls == 1
+
+
+def test_reported_calls_include_the_ones_that_failed(case, tmp_path):
+    """A truncated or timed-out call still occupied the model, so it must be counted."""
+    investigator = Investigator(
+        FakeLLM(responses=[LLMOutputError("truncated"), good_proposal()]), trace_dir=tmp_path
+    )
+    investigator.analyze(case.visible())
+
+    assert investigator.last_usage.calls == 2  # one failed, one succeeded
+    assert investigator.last_usage.output_tokens > 0
 
 
 def test_investigator_raises_when_the_model_is_unusable(case):

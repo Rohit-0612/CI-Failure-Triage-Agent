@@ -22,6 +22,10 @@ DEFAULT_MODEL = "qwen2.5-coder:7b"
 DEFAULT_TIMEOUT_SECONDS = 300.0
 # Ollama defaults to a 4096-token context, which silently truncates CI evidence.
 DEFAULT_NUM_CTX = 24_576
+# A cap, not a target: constrained decoding stops at the closing brace, so raising
+# this costs nothing unless the model really needs the room. It was 2048, and one
+# case spent it all inside a single quoted traceback and cut the JSON mid-string.
+DEFAULT_MAX_TOKENS = 3_072
 
 
 class LLMError(Exception):
@@ -30,6 +34,23 @@ class LLMError(Exception):
     def __init__(self, message: str, raw_output: str = ""):
         super().__init__(message)
         self.raw_output = raw_output
+
+
+class LLMTimeout(LLMError):
+    """The model did not answer in time.
+
+    Separate from LLMError because the remedy is different: a timeout usually means
+    the prompt was too big for this machine, so retrying with less evidence can work,
+    while an unreachable server cannot be fixed by asking again.
+    """
+
+
+class LLMOutputError(LLMError):
+    """The model answered, but the answer was not usable JSON.
+
+    Also recoverable: the model is alive and can be told what was wrong. Truncation
+    mid-string is the common case, so `raw_output` carries what did arrive.
+    """
 
 
 @dataclass(frozen=True)
@@ -50,7 +71,12 @@ class LLMClient(Protocol):
     name: str
 
     def complete_json(
-        self, *, system: str, user: str, schema: dict[str, Any], max_tokens: int = 2048
+        self,
+        *,
+        system: str,
+        user: str,
+        schema: dict[str, Any],
+        max_tokens: int = DEFAULT_MAX_TOKENS,
     ) -> tuple[dict[str, Any], Usage]: ...
 
 
@@ -81,10 +107,16 @@ class OllamaClient:
             model=os.environ.get("CI_TRIAGE_MODEL", DEFAULT_MODEL),
             base_url=os.environ.get("OLLAMA_HOST", DEFAULT_OLLAMA_URL),
             num_ctx=int(os.environ.get("CI_TRIAGE_NUM_CTX", DEFAULT_NUM_CTX)),
+            timeout=float(os.environ.get("CI_TRIAGE_TIMEOUT", DEFAULT_TIMEOUT_SECONDS)),
         )
 
     def complete_json(
-        self, *, system: str, user: str, schema: dict[str, Any], max_tokens: int = 2048
+        self,
+        *,
+        system: str,
+        user: str,
+        schema: dict[str, Any],
+        max_tokens: int = DEFAULT_MAX_TOKENS,
     ) -> tuple[dict[str, Any], Usage]:
         payload: dict[str, Any] = {
             "model": self.model,
@@ -106,6 +138,10 @@ class OllamaClient:
             response = self._http.post("/api/chat", json=payload)
             response.raise_for_status()
             body = response.json()
+        except httpx.TimeoutException as exc:
+            # Checked before HTTPError, which it inherits from: the caller can retry a
+            # timeout with a smaller prompt, but not an unreachable server.
+            raise LLMTimeout(f"ollama did not answer within the timeout: {exc}") from exc
         except httpx.HTTPStatusError as exc:
             detail = exc.response.text[:300]
             raise LLMError(f"ollama returned {exc.response.status_code}: {detail}") from exc
@@ -120,9 +156,9 @@ class OllamaClient:
         try:
             parsed = json.loads(content)
         except json.JSONDecodeError as exc:
-            raise LLMError(f"model did not return JSON: {exc}", raw_output=content) from exc
+            raise LLMOutputError(f"model did not return JSON: {exc}", raw_output=content) from exc
         if not isinstance(parsed, dict):
-            raise LLMError("model returned JSON that is not an object", raw_output=content)
+            raise LLMOutputError("model returned JSON that is not an object", raw_output=content)
         return parsed, usage
 
     def close(self) -> None:
@@ -143,7 +179,12 @@ class FakeLLM:
     _index: int = 0
 
     def complete_json(
-        self, *, system: str, user: str, schema: dict[str, Any], max_tokens: int = 2048
+        self,
+        *,
+        system: str,
+        user: str,
+        schema: dict[str, Any],
+        max_tokens: int = DEFAULT_MAX_TOKENS,
     ) -> tuple[dict[str, Any], Usage]:
         self.calls.append({"system": system, "user": user})
         if self._index >= len(self.responses):

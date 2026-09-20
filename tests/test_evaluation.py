@@ -100,6 +100,19 @@ def test_evaluate_refuses_missing_predictions(cases):
         evaluate(cases, [], "s", "dev")
 
 
+def test_evaluate_refuses_to_blend_two_systems_into_one_report(cases):
+    """Predictions are stored per CLI name ("agent") but carry a versioned name, so a
+    re-run after a code change could otherwise mix v1 and v2 numbers silently."""
+    predictions = [
+        Prediction(case_id="c1", system="agent_v1_m", diagnosis=None, error="x", latency_ms=1.0),
+        Prediction(case_id="c2", system="agent_v2_m", diagnosis=None, error="x", latency_ms=1.0),
+        Prediction(case_id="c3", system="agent_v2_m", diagnosis=None, error="x", latency_ms=1.0),
+        Prediction(case_id="c4", system="agent_v2_m", diagnosis=None, error="x", latency_ms=1.0),
+    ]
+    with pytest.raises(ValueError, match="more than one system"):
+        evaluate(cases, predictions, "agent", "dev")
+
+
 def test_run_system_reports_each_prediction_as_it_finishes(cases, monkeypatch):
     """Long local runs must survive interruption, so results are saved per case."""
     saved: list[str] = []

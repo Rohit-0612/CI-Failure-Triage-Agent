@@ -15,6 +15,12 @@ from typing import Any
 from ci_triage.agent.evidence import CLOSE_TAG, OPEN_TAG
 from ci_triage.taxonomy import FailureCategory
 
+# One long quote can consume the whole output budget and cut the JSON mid-string
+# (the starlette case in the first dev run). The schema states the limit and the
+# prompt repeats it; neither is a guarantee, so the graph also treats a truncated
+# answer as repairable rather than fatal.
+MAX_QUOTE_CHARS = 240
+
 CATEGORY_MEANINGS: dict[FailureCategory, str] = {
     FailureCategory.TEST_FAILURE: "a test asserted something false or raised at runtime",
     FailureCategory.SYNTAX_ERROR: "source could not be parsed",
@@ -49,7 +55,8 @@ the files most likely responsible.
 Rules you must follow:
 1. Use only the supplied evidence. Do not invent file names, tests, commits or log lines.
 2. Every quote in `evidence` must be copied **verbatim** from the evidence block. If you cannot \
-quote it exactly, leave it out.
+quote it exactly, leave it out. Quote the single most telling line, not a whole traceback: a \
+quote longer than {MAX_QUOTE_CHARS} characters is not accepted.
 3. `suspect_files` must be file paths that appear in the evidence, most likely first.
 4. Choose exactly one `failure_type` from the list below. If the evidence does not identify the \
 failure, answer UNKNOWN instead of guessing.
@@ -79,7 +86,7 @@ OUTPUT_SCHEMA: dict[str, Any] = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "quote": {"type": "string"},
+                    "quote": {"type": "string", "maxLength": MAX_QUOTE_CHARS},
                     "why": {"type": "string"},
                 },
                 "required": ["quote", "why"],

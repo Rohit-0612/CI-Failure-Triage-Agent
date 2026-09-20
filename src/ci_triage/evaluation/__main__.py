@@ -11,6 +11,7 @@ from typing import Any
 from ci_triage.evaluation.headroom import analyse, format_report
 from ci_triage.evaluation.runner import (
     SYSTEMS,
+    build_system,
     evaluate,
     read_jsonl,
     run_system,
@@ -94,12 +95,29 @@ def main(argv: list[str] | None = None) -> None:
         fresh = {c.case_id for c in selected}
         kept = [p for p in kept if p.case_id not in fresh]
 
+        # Build the system before running it: if the stored predictions came from a
+        # different version or model, refuse now rather than after hours of inference.
+        system_run = build_system(args.system, out_dir / "traces")
+        stale = sorted({p.system for p in kept} - {system_run.name})
+        if stale:
+            raise SystemExit(
+                f"{predictions_path} holds predictions from {stale}, but this run is "
+                f"{system_run.name!r}. Mixing them would produce a report that belongs to "
+                "no single system. Move the old file aside (or delete it) and re-run."
+            )
+
         # Save after every case: a local run takes over an hour and may be interrupted.
         def save(prediction) -> None:
             kept.append(prediction)
             write_jsonl(predictions_path, kept)
 
-        run_system(args.system, selected, trace_dir=out_dir / "traces", on_prediction=save)
+        run_system(
+            args.system,
+            selected,
+            trace_dir=out_dir / "traces",
+            on_prediction=save,
+            run=system_run,
+        )
         write_jsonl(predictions_path, kept)
 
     predictions = read_jsonl(predictions_path)

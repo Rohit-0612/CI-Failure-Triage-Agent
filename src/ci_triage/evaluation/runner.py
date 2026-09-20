@@ -90,16 +90,26 @@ class Prediction(BaseModel):
     cost_usd: float = 0.0
 
 
+def build_system(system: str, trace_dir: Path | None = None) -> SystemRun:
+    """Construct a system without running it, so its versioned name is known up front.
+
+    The caller needs the name *before* a run starts: a run that appends to another
+    version's predictions has to be refused now, not after hours of local inference.
+    """
+    return SYSTEMS[system](trace_dir)
+
+
 def run_system(
     system: str,
     cases: list[CaseRecord],
     *,
     trace_dir: Path | None = None,
     on_prediction: Callable[[Prediction], None] | None = None,
+    run: SystemRun | None = None,
 ) -> list[Prediction]:
     """Run every case. `on_prediction` fires after each one, so a long run that is
     interrupted (a local model takes ~1-3 minutes per case) keeps what it finished."""
-    run = SYSTEMS[system](trace_dir)
+    run = run or build_system(system, trace_dir)
     predictions = []
     for index, case in enumerate(cases, start=1):
         view = case.visible()
@@ -165,6 +175,17 @@ def evaluate(
     missing = [c.case_id for c in cases if c.case_id not in by_id]
     if missing:
         raise ValueError(f"no prediction for {len(missing)} case(s), e.g. {missing[:3]}")
+
+    # One report describes one system. Predictions are stored per CLI system name
+    # ("agent"), but the recorded name carries the version and model
+    # ("agent_v2_ollama-qwen2.5-coder-7b"), so a re-run after a code change would
+    # otherwise silently blend two systems into one set of numbers.
+    names = sorted({p.system for p in predictions})
+    if len(names) > 1:
+        raise ValueError(
+            "predictions come from more than one system, so they cannot be scored "
+            f"together: {names}. Move or delete the old predictions.jsonl and re-run."
+        )
 
     per_case: list[dict[str, Any]] = []
     pairs_by_status: dict[str, list[tuple[str, str]]] = {"all": []}

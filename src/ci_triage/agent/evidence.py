@@ -23,6 +23,9 @@ CLOSE_TAG = "</untrusted_evidence>"
 DEFAULT_BUDGET_CHARS = 24_000
 # Used when the first attempt answers UNKNOWN and the graph retries with more evidence.
 EXPANDED_BUDGET_CHARS = 40_000
+# Used after a model timeout: a smaller prompt is the one lever we have on a machine
+# that could not finish the call in time.
+SHRUNK_BUDGET_CHARS = 12_000
 MAX_FILE_CHARS = 6_000
 # Two files, not four: with four, the log and the diff got squeezed to nothing (observed
 # on real pydantic cases, where six of eight sections were truncated).

@@ -28,14 +28,22 @@ class Investigator:
         trace_dir: Path | None = None,
     ):
         self.client = client
-        self.name = f"agent_v1_{client.name.replace(':', '-').replace('/', '-')}"
+        # v2: truncated answers and timeouts are recovered instead of failing the case.
+        # The version is part of the name so a report can never be read as v1's numbers.
+        self.name = f"agent_v2_{client.name.replace(':', '-').replace('/', '-')}"
         self.trace_dir = trace_dir
         self._graph = build_graph(client, max_llm_calls=max_llm_calls)
         self.last_usage = Usage(0, 0, 0)
 
     def analyze(self, case: CaseView) -> Diagnosis:
         final = self._graph.invoke({"case": case})
-        self.last_usage = final.get("usage", Usage(0, 0, 0))
+        # Token counts only accumulate on success, but a call that timed out or came
+        # back truncated still occupied the model. Report the calls actually made,
+        # otherwise the cost column quietly under-reports exactly the slow cases.
+        usage = final.get("usage", Usage(0, 0, 0))
+        self.last_usage = Usage(
+            usage.input_tokens, usage.output_tokens, final.get("llm_calls", usage.calls)
+        )
         self._write_trace(case, final)
         diagnosis = final.get("diagnosis")
         if diagnosis is None:
