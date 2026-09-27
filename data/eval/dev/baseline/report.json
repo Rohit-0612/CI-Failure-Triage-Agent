@@ -6,15 +6,15 @@
   "category_accuracy": {
     "all": {
       "n": 50,
-      "hits": 47,
-      "rate": 0.94,
+      "hits": 40,
+      "rate": 0.8,
       "ci95": [
-        0.838,
-        0.979
+        0.67,
+        0.888
       ],
       "confusion": {
         "BUILD_FAILURE": {
-          "BUILD_FAILURE": 1
+          "DEPENDENCY_FAILURE": 1
         },
         "CI_CONFIGURATION_FAILURE": {
           "CI_CONFIGURATION_FAILURE": 1,
@@ -25,26 +25,31 @@
           "COVERAGE_FAILURE": 5
         },
         "DEPENDENCY_FAILURE": {
-          "DEPENDENCY_FAILURE": 4
+          "DEPENDENCY_FAILURE": 1
+        },
+        "ENVIRONMENT_FAILURE": {
+          "BUILD_FAILURE": 1
         },
         "FORMAT_FAILURE": {
-          "FORMAT_FAILURE": 9
+          "FORMAT_FAILURE": 9,
+          "LINT_FAILURE": 1
         },
         "LINT_FAILURE": {
-          "LINT_FAILURE": 5
+          "LINT_FAILURE": 4
         },
         "NETWORK_FAILURE": {
-          "NETWORK_FAILURE": 1
+          "DEPENDENCY_FAILURE": 1
         },
         "POLICY_CHECK_FAILURE": {
           "POLICY_CHECK_FAILURE": 7
         },
-        "SYNTAX_ERROR": {
-          "SYNTAX_ERROR": 1
-        },
         "TEST_FAILURE": {
           "TEST_FAILURE": 7,
-          "SYNTAX_ERROR": 1
+          "SYNTAX_ERROR": 2,
+          "DEPENDENCY_FAILURE": 1
+        },
+        "TIMEOUT": {
+          "NETWORK_FAILURE": 1
         },
         "TYPE_ERROR": {
           "TYPE_ERROR": 6
@@ -52,12 +57,12 @@
       }
     },
     "auto_verified": {
-      "n": 32,
-      "hits": 29,
-      "rate": 0.906,
+      "n": 27,
+      "hits": 25,
+      "rate": 0.926,
       "ci95": [
-        0.758,
-        0.968
+        0.766,
+        0.979
       ],
       "confusion": {
         "CI_CONFIGURATION_FAILURE": {
@@ -66,89 +71,107 @@
           "NETWORK_FAILURE": 1
         },
         "COVERAGE_FAILURE": {
-          "COVERAGE_FAILURE": 5
+          "COVERAGE_FAILURE": 3
         },
         "FORMAT_FAILURE": {
-          "FORMAT_FAILURE": 8
+          "FORMAT_FAILURE": 7
         },
         "LINT_FAILURE": {
           "LINT_FAILURE": 4
         },
         "TEST_FAILURE": {
-          "TEST_FAILURE": 6,
-          "SYNTAX_ERROR": 1
+          "TEST_FAILURE": 6
         },
         "TYPE_ERROR": {
-          "TYPE_ERROR": 5
+          "TYPE_ERROR": 4
         }
       }
     },
-    "needs_review": {
-      "n": 18,
-      "hits": 18,
-      "rate": 1.0,
+    "model_reviewed": {
+      "n": 22,
+      "hits": 14,
+      "rate": 0.636,
       "ci95": [
-        0.824,
-        1.0
+        0.43,
+        0.803
       ],
       "confusion": {
         "BUILD_FAILURE": {
+          "DEPENDENCY_FAILURE": 1
+        },
+        "COVERAGE_FAILURE": {
+          "COVERAGE_FAILURE": 2
+        },
+        "ENVIRONMENT_FAILURE": {
           "BUILD_FAILURE": 1
         },
-        "DEPENDENCY_FAILURE": {
-          "DEPENDENCY_FAILURE": 4
-        },
         "FORMAT_FAILURE": {
-          "FORMAT_FAILURE": 1
-        },
-        "LINT_FAILURE": {
+          "FORMAT_FAILURE": 2,
           "LINT_FAILURE": 1
         },
         "NETWORK_FAILURE": {
-          "NETWORK_FAILURE": 1
+          "DEPENDENCY_FAILURE": 1
         },
         "POLICY_CHECK_FAILURE": {
           "POLICY_CHECK_FAILURE": 7
         },
-        "SYNTAX_ERROR": {
-          "SYNTAX_ERROR": 1
-        },
         "TEST_FAILURE": {
-          "TEST_FAILURE": 1
+          "SYNTAX_ERROR": 2,
+          "TEST_FAILURE": 1,
+          "DEPENDENCY_FAILURE": 1
+        },
+        "TIMEOUT": {
+          "NETWORK_FAILURE": 1
         },
         "TYPE_ERROR": {
-          "TYPE_ERROR": 1
+          "TYPE_ERROR": 2
+        }
+      }
+    },
+    "needs_review": {
+      "n": 1,
+      "hits": 1,
+      "rate": 1.0,
+      "ci95": [
+        0.207,
+        1.0
+      ],
+      "confusion": {
+        "DEPENDENCY_FAILURE": {
+          "DEPENDENCY_FAILURE": 1
         }
       }
     }
   },
   "abstention_rate": 0.0,
   "localization": {
-    "n": 42,
+    "n": 40,
     "hit@1": {
-      "n": 42,
-      "hits": 24,
-      "rate": 0.571,
+      "n": 40,
+      "hits": 23,
+      "rate": 0.575,
       "ci95": [
         0.422,
-        0.709
+        0.715
       ]
     },
     "hit@3": {
-      "n": 42,
-      "hits": 33,
-      "rate": 0.786,
+      "n": 40,
+      "hits": 31,
+      "rate": 0.775,
       "ci95": [
-        0.641,
-        0.883
+        0.625,
+        0.877
       ]
     },
-    "mrr": 0.682,
-    "recall@5": 0.808,
+    "mrr": 0.683,
+    "recall@5": 0.812,
     "excluded": {
       "fix_status:flaky_rerun": 6,
-      "non_code_category:NETWORK_FAILURE": 1,
-      "non_code_category:POLICY_CHECK_FAILURE": 1
+      "non_code_category:ENVIRONMENT_FAILURE": 1,
+      "non_code_category:TIMEOUT": 1,
+      "non_code_category:POLICY_CHECK_FAILURE": 1,
+      "non_code_category:NETWORK_FAILURE": 1
     }
   },
   "evidence_grounding": {
@@ -171,29 +194,15 @@
   "per_case": [
     {
       "case_id": "pydantic__pydantic__33082044287",
-      "gold": "BUILD_FAILURE",
-      "gold_status": "needs_review",
+      "gold": "ENVIRONMENT_FAILURE",
+      "gold_status": "model_reviewed",
       "pred": "BUILD_FAILURE",
-      "correct": true,
-      "localization": {
-        "hit@1": 0.0,
-        "hit@3": 1.0,
-        "rr": 0.3333333333333333,
-        "recall@5": 1.0
-      },
-      "gold_files": [
-        "tests/test_schema_gather.py"
-      ],
-      "top_files": [
-        "pydantic-core/src/schema_gather.rs",
-        "pydantic/_internal/_schema_gather.py",
-        "tests/test_schema_gather.py"
-      ]
+      "correct": false
     },
     {
       "case_id": "pydantic__pydantic__33066070414",
       "gold": "FORMAT_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "FORMAT_FAILURE",
       "correct": true,
       "localization": {
@@ -214,7 +223,7 @@
     {
       "case_id": "pydantic__pydantic__33063609427",
       "gold": "TEST_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "TEST_FAILURE",
       "correct": true,
       "localization": {
@@ -234,10 +243,10 @@
     },
     {
       "case_id": "pydantic__pydantic__32959966756",
-      "gold": "NETWORK_FAILURE",
-      "gold_status": "needs_review",
+      "gold": "TIMEOUT",
+      "gold_status": "model_reviewed",
       "pred": "NETWORK_FAILURE",
-      "correct": true
+      "correct": false
     },
     {
       "case_id": "pallets__flask__30566227095",
@@ -285,7 +294,7 @@
     {
       "case_id": "pallets__flask__29883670931",
       "gold": "FORMAT_FAILURE",
-      "gold_status": "auto_verified",
+      "gold_status": "model_reviewed",
       "pred": "FORMAT_FAILURE",
       "correct": true,
       "localization": {
@@ -582,7 +591,7 @@
     {
       "case_id": "pytest-dev__pytest__34229763670",
       "gold": "TEST_FAILURE",
-      "gold_status": "auto_verified",
+      "gold_status": "model_reviewed",
       "pred": "SYNTAX_ERROR",
       "correct": false,
       "localization": {
@@ -624,10 +633,10 @@
     },
     {
       "case_id": "pytest-dev__pytest__34187626286",
-      "gold": "SYNTAX_ERROR",
-      "gold_status": "needs_review",
+      "gold": "TEST_FAILURE",
+      "gold_status": "model_reviewed",
       "pred": "SYNTAX_ERROR",
-      "correct": true,
+      "correct": false,
       "localization": {
         "hit@1": 0.0,
         "hit@3": 1.0,
@@ -769,7 +778,7 @@
     {
       "case_id": "Kludex__starlette__34032002422",
       "gold": "COVERAGE_FAILURE",
-      "gold_status": "auto_verified",
+      "gold_status": "model_reviewed",
       "pred": "COVERAGE_FAILURE",
       "correct": true,
       "localization": {
@@ -789,7 +798,7 @@
     {
       "case_id": "Kludex__starlette__33952995268",
       "gold": "TYPE_ERROR",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "TYPE_ERROR",
       "correct": true,
       "localization": {
@@ -832,10 +841,10 @@
     },
     {
       "case_id": "fastapi__fastapi__34936005539",
-      "gold": "LINT_FAILURE",
-      "gold_status": "needs_review",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "model_reviewed",
       "pred": "LINT_FAILURE",
-      "correct": true,
+      "correct": false,
       "localization": {
         "hit@1": 1.0,
         "hit@3": 1.0,
@@ -853,7 +862,7 @@
     {
       "case_id": "fastapi__fastapi__34835273060",
       "gold": "COVERAGE_FAILURE",
-      "gold_status": "auto_verified",
+      "gold_status": "model_reviewed",
       "pred": "COVERAGE_FAILURE",
       "correct": true,
       "localization": {
@@ -912,21 +921,21 @@
     {
       "case_id": "psf__black__29871428477",
       "gold": "POLICY_CHECK_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "POLICY_CHECK_FAILURE",
       "correct": true
     },
     {
       "case_id": "psf__black__33696871532",
       "gold": "POLICY_CHECK_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "POLICY_CHECK_FAILURE",
       "correct": true
     },
     {
       "case_id": "psf__black__33354168731",
       "gold": "POLICY_CHECK_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "POLICY_CHECK_FAILURE",
       "correct": true
     },
@@ -954,37 +963,37 @@
     {
       "case_id": "pypa__pip__34524072723",
       "gold": "POLICY_CHECK_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "POLICY_CHECK_FAILURE",
       "correct": true
     },
     {
       "case_id": "pypa__pip__34491528981",
       "gold": "POLICY_CHECK_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "POLICY_CHECK_FAILURE",
       "correct": true
     },
     {
       "case_id": "pypa__pip__34111503185",
       "gold": "POLICY_CHECK_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "POLICY_CHECK_FAILURE",
       "correct": true
     },
     {
       "case_id": "pypa__pip__34001199872",
       "gold": "POLICY_CHECK_FAILURE",
-      "gold_status": "needs_review",
+      "gold_status": "model_reviewed",
       "pred": "POLICY_CHECK_FAILURE",
       "correct": true
     },
     {
       "case_id": "pypa__pipx__29164805804",
-      "gold": "DEPENDENCY_FAILURE",
-      "gold_status": "needs_review",
+      "gold": "BUILD_FAILURE",
+      "gold_status": "model_reviewed",
       "pred": "DEPENDENCY_FAILURE",
-      "correct": true,
+      "correct": false,
       "localization": {
         "hit@1": 0.0,
         "hit@3": 0.0,
@@ -1003,10 +1012,10 @@
     },
     {
       "case_id": "pypa__pipx__29308101290",
-      "gold": "DEPENDENCY_FAILURE",
-      "gold_status": "needs_review",
+      "gold": "TEST_FAILURE",
+      "gold_status": "model_reviewed",
       "pred": "DEPENDENCY_FAILURE",
-      "correct": true,
+      "correct": false,
       "localization": {
         "hit@1": 0.0,
         "hit@3": 0.0,
@@ -1024,32 +1033,10 @@
     },
     {
       "case_id": "pypa__pipx__31639702870",
-      "gold": "DEPENDENCY_FAILURE",
-      "gold_status": "needs_review",
+      "gold": "NETWORK_FAILURE",
+      "gold_status": "model_reviewed",
       "pred": "DEPENDENCY_FAILURE",
-      "correct": true,
-      "localization": {
-        "hit@1": 1.0,
-        "hit@3": 1.0,
-        "rr": 1.0,
-        "recall@5": 0.4444444444444444
-      },
-      "gold_files": [
-        "src/pipx/standalone_python.py",
-        "testdata/standalone_python_index_20250818.json",
-        "testdata/standalone_python_index_20250828.json",
-        "tests/conftest.py",
-        "tests/helpers.py",
-        "tests/test_install.py",
-        "tests/test_interpreter.py",
-        "tests/test_list.py",
-        "tests/test_standalone_interpreter.py"
-      ],
-      "top_files": [
-        "tests/test_install.py",
-        "tests/test_interpreter.py",
-        "tests/test_list.py"
-      ]
+      "correct": false
     },
     {
       "case_id": "pypa__pipx__33240510369",
@@ -1097,7 +1084,7 @@
     {
       "case_id": "tox-dev__tox__33809230908",
       "gold": "TYPE_ERROR",
-      "gold_status": "auto_verified",
+      "gold_status": "model_reviewed",
       "pred": "TYPE_ERROR",
       "correct": true,
       "localization": {
