@@ -41,7 +41,8 @@ pairs each failure with the code change that made CI green again.
 uv run python -m ci_triage.miner mine                                # dev split (data/repos.yaml)
 uv run python -m ci_triage.miner --config data/repos_test.yaml mine  # held-out test split
 uv run python -m ci_triage.miner stats                               # statistics from the JSONL
-uv run python -m ci_triage.miner annotate                            # human review + audit sample
+uv run python -m ci_triage.miner annotate                            # review queue + audit sample
+uv run python -m ci_triage.miner annotate --export q.txt --blind     # queue without the auto label
 ```
 
 ### How it works
@@ -75,16 +76,48 @@ where a fix commit SHA appears in `input`.
 | Cases / repositories | 50 / 14 | 25 / 7 (disjoint from dev) |
 | Red streaks examined | 246 | 132 |
 | Fix status | 44 matched (all single-commit), 6 same-commit reruns | 25 matched (18 high, 7 medium confidence) |
-| Labels | 32 `auto_verified`, 18 `needs_review` | 19 `auto_verified`, 6 `needs_review` |
-| Human-reviewed labels | 0 | 0 |
+| Labels after review | 27 `auto_verified`, 22 `model_reviewed`, 1 `needs_review` | 19 `auto_verified`, 6 `needs_review` |
+| Reviewed labels | 22 model-reviewed, 1 still open | 0 |
+| Human-reviewed labels | **0** | **0** |
 
-Dev category distribution (automatic labels): FORMAT 9, TEST 8, POLICY_CHECK 7, TYPE 6,
-LINT 5, COVERAGE 5, DEPENDENCY 4, CI_CONFIGURATION 3, BUILD / NETWORK / SYNTAX 1 each.
-Test: TEST 8, LINT 5, UNKNOWN 5, TYPE 4, BUILD 2, CI_CONFIGURATION 1.
+Dev category distribution after the review below: FORMAT 10, TEST 10, POLICY_CHECK 7,
+TYPE 6, COVERAGE 5, LINT 4, CI_CONFIGURATION 3, BUILD / DEPENDENCY / ENVIRONMENT / NETWORK /
+TIMEOUT 1 each. Test (automatic labels): TEST 8, LINT 5, UNKNOWN 5, TYPE 4, BUILD 2,
+CI_CONFIGURATION 1.
 
 The dev split is the data the labeling and baseline rules were developed on. The test split
 comes from repositories that were never inspected while writing rules; it was mined and
 evaluated only after the baseline was committed.
+
+### Label review
+
+The automatic labels on the dev split's review queue - 18 `needs_review` cases plus a 5-case
+audit sample - were re-decided from the failure evidence and the real fix, **blind**: the
+automatic label, its confidence, the rule behind it, and whether a case was a review or an
+audit case were all hidden. Anchoring is the whole risk in auditing your own labeler, and a
+precision figure produced by a reviewer who already saw the label measures the anchoring.
+
+22 of the 23 were decided; 1 was declined and left open, because its excerpt carries a
+truncated `ExceptionGroup` and no error class, and two categories are equally defensible on
+that evidence. Forcing a category there would write a wrong gold label, and every system
+would then be scored against it.
+
+| | Result |
+|---|---|
+| Audit sample (`auto_verified` cases) | **5/5** kept the automatic label |
+| `needs_review` cases corrected | **7 of 18** |
+| Cases declined, still open | 1 |
+
+Three of the seven corrections were the automatic labeler matching a substring: a
+`SyntaxError` raised by pytest's own match-expression parser is not "source could not be
+parsed", and pipx's test suite always logs `No matching distribution found for pycowsay`,
+which is noise rather than a dependency failure.
+
+**These labels are `model_reviewed`, not `human_verified`.** The distinction is in the data,
+and every report splits category accuracy by it, so no number here can quietly borrow the
+stronger claim. The circularity is reduced - the gold labels no longer come from the same
+log regexes the baseline uses - but not removed: the labels are still a language model's
+judgement. The test split's queue (11 cases) has not been reviewed at all.
 
 ## Phase 2: rule baseline and evaluation harness
 
@@ -111,10 +144,10 @@ uv run python -m ci_triage.evaluation score --system baseline --split test   # r
 
 | Metric | Dev (50) | Held-out test (25) |
 |---|---|---|
-| Localization hit@1 | 57.1% (24/42, CI 42-71%) | **43.5%** (10/23, CI 26-63%) |
-| Localization hit@3 | 78.6% (CI 64-88%) | **56.5%** (CI 37-74%) |
-| Localization MRR | 0.682 | **0.505** |
-| Category accuracy vs automatic labels | 94.0% | 80.0% |
+| Localization hit@1 | 57.5% (23/40, CI 42-72%) | **43.5%** (10/23, CI 26-63%) |
+| Localization hit@3 | 77.5% (CI 62-88%) | **56.5%** (CI 37-74%) |
+| Localization MRR | 0.683 | **0.505** |
+| Category accuracy (dev: reviewed labels) | 80.0% | 80.0% |
 | Evidence grounding | 121/121 | 62/62 |
 | Abstention (UNKNOWN) | 0% | 16% |
 | Mean latency / cost | 2.4 ms / $0 | 2.3 ms / $0 |
@@ -124,18 +157,19 @@ How to read this:
 - **Fault localization is the meaningful number**: it is scored against the real fix and
   does not depend on labels. It drops on held-out repositories, so the dev numbers were
   optimistic.
-- **Category accuracy is not yet trustworthy.** The gold labels are automatic and partly
-  come from similar log patterns, so agreement is inflated (100% on dev `needs_review`
-  cases). Of the 5 test disagreements, 2 look like label errors, 2 are baseline errors and 1
-  depends on hindsight. Category accuracy becomes meaningful only after the human review
-  (`annotate`), followed by `evaluation score`.
+- **Category accuracy was inflated, and the review shows by how much.** On dev it was
+  94.0% against purely automatic labels; against the reviewed labels it is 80.0%, and the
+  per-status split says where the difference lives: **92.6% on `auto_verified` cases against
+  63.6% on the reviewed ones**. Scoring a regex system against regex-derived labels measured
+  agreement between two implementations of the same idea. The test split has not been
+  reviewed, so its 80.0% is still the inflated kind of number.
 - Known baseline v1 bugs found in the held-out error analysis, deliberately **not** fixed in
   v1 so the test numbers stay clean: the coverage rule also matches the coverage *success*
   message ("Required test coverage of 99.0% reached"), and coverage is checked before test
   failures although failing tests are the usual cause of low coverage. A fixed v2 has to be
   evaluated on new held-out data.
-- Dev-split ablation for localization (hit@1): log references only 0.405, changed files only
-  0.500, combined 0.571.
+- Dev-split ablation for localization (hit@1), measured before the label review: log
+  references only 0.405, changed files only 0.500, combined 0.571.
 
 ## Phase 3: LangGraph investigation agent
 
@@ -176,23 +210,28 @@ Reports name the model, e.g. `agent_v1_ollama-qwen2.5-coder-7b`.
 
 | Metric | dev: agent | dev: baseline | **test: agent** | **test: baseline** |
 |---|---|---|---|---|
-| Localization hit@1 | **64.3%** (27/42) | 57.1% (24/42) | **43.5%** (10/23) | **43.5%** (10/23) |
-| Localization hit@3 | 71.4% | 78.6% | 52.2% | 56.5% |
-| Localization MRR | 0.679 | 0.682 | 0.478 | 0.505 |
-| Category accuracy vs auto labels | 48.0% | 94.0% | 72.0% | 80.0% |
+| Localization hit@1 | **65.0%** (26/40) | 57.5% (23/40) | **43.5%** (10/23) | **43.5%** (10/23) |
+| Localization hit@3 | 72.5% | 77.5% | 52.2% | 56.5% |
+| Localization MRR | 0.688 | 0.683 | 0.478 | 0.505 |
+| Category accuracy (dev: reviewed labels) | 54.0% | 80.0% | 72.0% | 80.0% |
 | Evidence grounded | 93/93 | 121/121 | 45/45 | 62/62 |
 | Abstention (UNKNOWN) | 18% | 0% | 20% | 16% |
 | Mean latency / cost | 137 s / $0 | ~0 s / $0 | 131 s / $0 | ~0 s / $0 |
 
 **The honest headline: on held-out repositories the local 7B agent does not beat the rule
 baseline.** It matches it on hit@1 and is slightly behind on hit@3 and MRR, while taking ~131
-seconds per case instead of milliseconds. The dev-split advantage (64.3% vs 57.1%) did not
+seconds per case instead of milliseconds. The dev-split advantage (65.0% vs 57.5%) did not
 generalise — the same lesson the held-out split taught in Phase 2.
 
-Category accuracy is measured against automatic labels, so it mostly measures *agreement with the
-labeler*, not correctness: several agent "mistakes" are taxonomy-boundary calls (formatter failure
-reported as a lint failure), honest abstentions, or cases where the label itself is questionable
-(pipx tests that print pip's own dependency errors). A human review of the labels is still pending.
+The dev category numbers are now scored against the reviewed labels, which moved both systems:
+the agent up (48.0% to 54.0%) and the baseline down (94.0% to 80.0%), because the review removed
+the advantage a regex system gets from regex-derived labels. On the cases a reviewer decided, the
+gap is 45.5% for the agent against 63.6% for the baseline. The held-out test split has **not** been
+reviewed, so its category column is still agreement with the automatic labeler.
+
+The remaining agent "mistakes" are largely taxonomy-boundary calls (a formatter failure reported as
+a lint failure) and honest abstentions. The labels are `model_reviewed`, not `human_verified` — see
+[Label review](#label-review).
 
 What this chapter is really worth is the harness around the model: a deterministic validation loop,
 grounding that cannot be bypassed, injection containment, per-case traces, and token/cost
@@ -210,9 +249,11 @@ an environment variable; the measured cost fields are already in every predictio
   (a single commit between red and green, and the same job passing), not that the change is
   semantically confirmed. Example: some pip PR-template failures went green after an
   unrelated commit, while the real fix was editing the PR description.
-- **Automatic labels describe the failure class, not always the deepest cause**, and the
-  labeler was developed on the dev split (5 test cases are `UNKNOWN`). Label precision will
-  be measured with a human audit sample.
+- **Labels describe the failure class, not always the deepest cause.** On dev, a blind audit
+  put the automatic labeler at 5/5 on the cases it was confident about, and 7 of 18 wrong on
+  the ones it flagged itself. The labeler was developed on the dev split, and the test split's
+  labels are still entirely automatic (5 of its cases are `UNKNOWN`). No label in this dataset
+  has been checked by a person.
 - **Selection bias.** Popular, well-maintained, mostly pure-Python repos; only fixes that
   land on the same branch inside the 80-day window; single-commit fixes dominate. Most
   examined streaks never went green on the same branch and are excluded.
