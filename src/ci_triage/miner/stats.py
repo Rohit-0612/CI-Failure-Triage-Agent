@@ -7,7 +7,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from ci_triage.miner.schema import CaseRecord
+from ci_triage.miner.schema import REVIEWED_STATUSES, CaseRecord
 
 
 def load_cases(path: Path) -> list[CaseRecord]:
@@ -34,7 +34,7 @@ def compute_stats(cases: list[CaseRecord], rejections: list[dict[str, Any]]) -> 
     matched = [c for c in cases if c.ground_truth.fix_status == "matched"]
     audited = [c for c in cases if c.labels.audited and c.labels.auto_category is not None]
     audit_agree = sum(c.labels.category == c.labels.auto_category for c in audited)
-    reviewed = [c for c in cases if c.labels.label_status == "human_verified"]
+    reviewed = [c.labels.label_status for c in cases if c.labels.label_status in REVIEWED_STATUSES]
 
     return {
         "cases": len(cases),
@@ -53,13 +53,15 @@ def compute_stats(cases: list[CaseRecord], rejections: list[dict[str, Any]]) -> 
         "category_all": count(c.labels.category for c in cases),
         "category_by_label_status": {
             status: count(c.labels.category for c in cases if c.labels.label_status == status)
-            for status in ("auto_verified", "needs_review", "human_verified")
+            for status in ("auto_verified", "needs_review", *REVIEWED_STATUSES)
         },
         "label_status": count(c.labels.label_status for c in cases),
         "label_confidence": count(c.labels.label_confidence for c in cases),
         "log_rule": count(c.labels.log_signal.rule for c in cases),
         "fix_rule": count(c.labels.fix_signal.rule for c in cases),
-        "human_reviewed": len(reviewed),
+        # Split, never summed into one "reviewed" number: a model's judgement and a
+        # person's are different claims, and a reader must be able to tell which is which.
+        "reviewed": {status: sum(s == status for s in reviewed) for status in REVIEWED_STATUSES},
         "audit": {
             "audited": len(audited),
             "auto_label_agreed": audit_agree,

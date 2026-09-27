@@ -21,6 +21,16 @@ from ci_triage.evaluation.runner import (
 from ci_triage.miner.schema import CaseRecord
 from ci_triage.miner.stats import load_cases
 
+STORED_SYSTEM_HELP = (
+    "any system directory under data/eval/<split>/, including retired ones such as "
+    "agent_v1 (reads stored predictions; does not run a model)"
+)
+
+
+def stored_systems(split_dir: Path) -> list[str]:
+    """System directories that hold predictions, for a "did you mean" on a typo."""
+    return sorted(path.parent.name for path in split_dir.glob("*/predictions.jsonl"))
+
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m ci_triage.evaluation")
@@ -31,7 +41,16 @@ def main(argv: list[str] | None = None) -> None:
         ("score", "re-score existing predictions (e.g. after labels were reviewed)"),
     ):
         cmd = sub.add_parser(name, help=help_text)
-        cmd.add_argument("--system", choices=sorted(SYSTEMS), default="baseline")
+        # `run` has to construct the system, so it must name one we know how to build.
+        # `score` only reads predictions off disk, and the system that produced them is
+        # recorded inside the file - so it takes any stored directory, including retired
+        # versions like `agent_v1`. Tying it to SYSTEMS meant a frozen result could never
+        # be re-scored after a label review, leaving one report on an older label set
+        # while the others moved on.
+        if name == "run":
+            cmd.add_argument("--system", choices=sorted(SYSTEMS), default="baseline")
+        else:
+            cmd.add_argument("--system", default="baseline", help=STORED_SYSTEM_HELP)
         cmd.add_argument("--split", choices=["dev", "test"], default="dev")
         # Local models take ~1-3 minutes per case, so partial runs must be possible.
         cmd.add_argument("--limit", type=int, help="only the first N cases of the split")
@@ -48,7 +67,7 @@ def main(argv: list[str] | None = None) -> None:
     headroom = sub.add_parser(
         "headroom", help="why localization missed: reasoning vs missing information"
     )
-    headroom.add_argument("--system", choices=sorted(SYSTEMS), default="agent")
+    headroom.add_argument("--system", default="agent", help=STORED_SYSTEM_HELP)
     headroom.add_argument("--split", choices=["dev", "test"], default="dev")
     headroom.add_argument("--detail", action="store_true", help="list the cases in each bucket")
 
@@ -68,10 +87,14 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(f"no cases found for split {args.split!r}")
     out_dir = args.data_dir / "eval" / args.split / args.system
     predictions_path = out_dir / "predictions.jsonl"
+    if args.command in ("score", "headroom") and not predictions_path.exists():
+        known = stored_systems(args.data_dir / "eval" / args.split) or ["none yet"]
+        raise SystemExit(
+            f"no predictions at {predictions_path}. Stored systems for split "
+            f"{args.split!r}: {', '.join(known)}"
+        )
 
     if args.command == "headroom":
-        if not predictions_path.exists():
-            raise SystemExit(f"no predictions at {predictions_path}; run the system first")
         result = analyse(cases, read_jsonl(predictions_path), args.data_dir / "repos")
         write_report(out_dir / "headroom.json", result)
         print(format_report(result, args.system, args.split))
@@ -152,6 +175,7 @@ def compare_systems(split_dir: Path) -> str:
     reports = [json.loads(p.read_text()) for p in sorted(split_dir.glob("*/report.json"))]
     if not reports:
         raise SystemExit(f"no reports under {split_dir}")
+    warning = _case_count_warning(reports)
 
     def pct(value: dict[str, Any] | None) -> str:
         if not value or not value.get("n"):
@@ -187,7 +211,25 @@ def compare_systems(split_dir: Path) -> str:
     header = ["metric", *(r["system"] for r in reports)]
     lines = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
     lines += [f"| {name} | " + " | ".join(values) + " |" for name, values in rows]
-    return "\n".join(lines)
+    return (warning + "\n".join(lines)) if warning else "\n".join(lines)
+
+
+def _case_count_warning(reports: list[dict[str, Any]]) -> str:
+    """Say so when the columns were not scored on the same cases.
+
+    A pilot on 15 cases and a full run on 50 sit side by side here, and the numbers look
+    equally authoritative. The "cases scored" row does show it, but a row is easy to skim
+    past on the way to hit@1 - and this table exists to be pasted into the README.
+    """
+    counts = {r["system"]: r.get("scored_cases_of_split", str(r["cases"])) for r in reports}
+    if len(set(counts.values())) <= 1:
+        return ""
+    spread = ", ".join(f"{system} {count}" for system, count in sorted(counts.items()))
+    return (
+        "> **Not comparable as a like-for-like table:** these reports were scored on "
+        f"different numbers of cases ({spread}). Compare only columns with the same "
+        "count.\n\n"
+    )
 
 
 def format_summary(report: dict[str, Any]) -> str:

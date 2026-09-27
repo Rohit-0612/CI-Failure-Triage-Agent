@@ -1,6 +1,9 @@
+import json
+
 import pytest
 
 from ci_triage.diagnosis import Diagnosis, Evidence
+from ci_triage.evaluation import __main__ as evaluation_main
 from ci_triage.evaluation import metrics
 from ci_triage.evaluation import runner as runner_mod
 from ci_triage.evaluation.runner import Prediction, evaluate, gold_fix_files, run_system
@@ -140,3 +143,89 @@ def test_run_system_isolates_failures(cases, monkeypatch):
     predictions = run_system("broken", cases)
     assert len(predictions) == 4
     assert all(p.diagnosis is None and "bad case" in p.error for p in predictions)
+
+
+# ------------------------------------------------------- CLI: reading stored results
+
+
+def _report(path, system, scored, cases=50):
+    """A minimal report.json, enough for compare_systems to render a column."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "system": system,
+                "split": "dev",
+                "cases": cases,
+                "scored_cases_of_split": scored,
+                "errors": 0,
+                "category_accuracy": {"all": None},
+                "abstention_rate": 0.0,
+                "localization": {"hit@1": None, "hit@3": None, "mrr": 0.0, "excluded": {}},
+                "evidence_grounding": {"items": 0, "grounded": 0},
+                "operational": {
+                    "latency_ms_mean": 1.0,
+                    "llm_calls_total": 0,
+                    "cost_usd_total": 0.0,
+                },
+            }
+        )
+    )
+
+
+def test_score_accepts_a_retired_system_directory(tmp_path):
+    """A frozen result must stay re-scorable after a label review.
+
+    --system for `score` is not tied to SYSTEMS: those are systems we know how to *run*,
+    and a retired version like agent_v1 is not one of them. Binding the two meant the
+    older report could never be recomputed, leaving it on a stale label set while every
+    other report moved on.
+    """
+    parser_systems = evaluation_main.SYSTEMS
+    assert "agent_v1" not in parser_systems  # not runnable...
+
+    split_dir = tmp_path / "eval" / "dev"
+    (split_dir / "agent_v1").mkdir(parents=True)
+    (split_dir / "agent_v1" / "predictions.jsonl").write_text("")
+
+    assert evaluation_main.stored_systems(split_dir) == ["agent_v1"]  # ...but readable
+
+
+def test_a_mistyped_system_lists_what_is_actually_stored(tmp_path, record_dict):
+    """A missing directory should read as "wrong name", not as "no results yet"."""
+    split_dir = tmp_path / "eval" / "dev"
+    for name in ("agent_v1", "baseline"):
+        (split_dir / name).mkdir(parents=True)
+        (split_dir / name / "predictions.jsonl").write_text("")
+    processed = tmp_path / "processed" / "dev"
+    processed.mkdir(parents=True)
+    processed.joinpath("cases.jsonl").write_text(
+        CaseRecord.model_validate(record_dict()).model_dump_json() + "\n"
+    )
+
+    with pytest.raises(SystemExit) as caught:
+        evaluation_main.main(
+            ["--data-dir", str(tmp_path), "score", "--system", "agnet_v1", "--split", "dev"]
+        )
+    assert "agent_v1" in str(caught.value) and "baseline" in str(caught.value)
+
+
+def test_compare_warns_when_columns_were_scored_on_different_cases(tmp_path):
+    """A 15-case pilot and a 50-case run look equally authoritative side by side, and
+    this table exists to be pasted into the README."""
+    split_dir = tmp_path / "dev"
+    _report(split_dir / "agent" / "report.json", "agent_v2", "15/50")
+    _report(split_dir / "baseline" / "report.json", "rule_baseline_v1", "50/50")
+
+    table = evaluation_main.compare_systems(split_dir)
+
+    assert table.startswith("> **Not comparable")
+    assert "agent_v2 15/50" in table and "rule_baseline_v1 50/50" in table
+
+
+def test_compare_stays_quiet_when_the_columns_match(tmp_path):
+    split_dir = tmp_path / "dev"
+    _report(split_dir / "agent" / "report.json", "agent_v2", "50/50")
+    _report(split_dir / "baseline" / "report.json", "rule_baseline_v1", "50/50")
+
+    assert evaluation_main.compare_systems(split_dir).startswith("| metric |")

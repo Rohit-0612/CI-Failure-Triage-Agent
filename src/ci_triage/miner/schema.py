@@ -21,6 +21,10 @@ from ci_triage.taxonomy import FailedStage, FailureCategory
 
 SCHEMA_VERSION = "1.0"
 
+# Label statuses that mean "someone re-read the evidence", strongest claim first.
+# Kept separate because they are not interchangeable: one is a person, one is a model.
+REVIEWED_STATUSES = ("human_verified", "model_reviewed")
+
 Sha = str  # validated as 40-hex where it is produced (git_local.validate_sha)
 
 
@@ -134,7 +138,11 @@ class Labels(_Model):
     log_signal: SignalResult
     fix_signal: SignalResult
     label_confidence: Literal["high", "medium", "low"]
-    label_status: Literal["auto_verified", "needs_review", "human_verified"]
+    # model_reviewed: a language model re-read the evidence and decided the category.
+    # Kept distinct from human_verified because it is a weaker claim, and because
+    # evaluation splits accuracy by this field - so every report discloses which kind
+    # of label it was scored against without anyone having to remember to say so.
+    label_status: Literal["auto_verified", "needs_review", "human_verified", "model_reviewed"]
     # Why the auto-labeler decided this (labeling.combine rule, e.g. "signals_conflict").
     label_rule: str | None = None
     # The automatic category, kept after human review so audit precision is measurable.

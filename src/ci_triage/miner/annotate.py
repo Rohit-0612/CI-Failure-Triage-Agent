@@ -15,12 +15,17 @@ import os
 import random
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any, Literal, get_args
 
-from ci_triage.miner.schema import CaseRecord
+from ci_triage.miner.schema import REVIEWED_STATUSES, CaseRecord
 from ci_triage.miner.stats import load_cases
 from ci_triage.taxonomy import FailureCategory
 
 CATEGORIES = list(FailureCategory)
+ReviewStatus = Literal["human_verified", "model_reviewed"]
+# One definition of what counts as reviewed. Adding a status in the schema and forgetting
+# it here would silently make it unwritable, so the two are checked against each other.
+assert set(get_args(ReviewStatus)) == set(REVIEWED_STATUSES)
 
 
 def build_queue(cases: list[CaseRecord], audit_size: int, seed: int = 0) -> list[tuple[str, str]]:
@@ -42,12 +47,16 @@ def apply_review(
     fix_text: str,
     notes: str,
     audit: bool,
+    status: ReviewStatus = "human_verified",
 ) -> CaseRecord:
+    """Record a review. `status` says who did it, and it is not decoration: evaluation
+    splits accuracy by label_status, so writing "human_verified" for a model's judgement
+    would silently overstate every category number derived from it."""
     labels = case.labels.model_copy(
         update={
             "auto_category": case.labels.auto_category or case.labels.category,
             "category": category,
-            "label_status": "human_verified",
+            "label_status": status,
             "label_confidence": "high",
             "root_cause_text": root_cause.strip() or None,
             "fix_text": fix_text.strip() or None,
@@ -58,14 +67,38 @@ def apply_review(
     return case.model_copy(update={"labels": labels})
 
 
-def render_case(case: CaseRecord, position: str, why: str) -> str:
+def render_case(case: CaseRecord, position: str, why: str, *, blind: bool = False) -> str:
+    """The evidence for one case, and (unless blind) what the auto-labeler thought.
+
+    `blind` exists for the audit sample, whose whole purpose is to measure how often the
+    automatic label is right. A reviewer who has already seen that label - or even just
+    that the case is an *audit* case, which means the labeler was confident - will agree
+    with it more often, and the resulting precision figure measures the anchoring rather
+    than the labeler. So blind mode hides the label, its confidence, the rule that
+    produced it, and whether this case is a review or an audit.
+    """
     i, gt, lb = case.input, case.ground_truth, case.labels
     sig = i.error_signature
     fix_diff = "\n".join(gt.fix_window.diff.splitlines()[:60])
+    heading = (
+        f"[{position}] {case.case_id}"
+        if blind
+        else f"[{position}] {case.case_id}   ({why}; auto rule: {lb.label_rule})"
+    )
+    automatic = (
+        []
+        if blind
+        else [
+            "--- automatic label ---",
+            f"category: {lb.category}  ({lb.label_confidence}, {lb.label_status})",
+            f"log signal: {lb.log_signal.category} [{lb.log_signal.rule}]   "
+            f"fix signal: {lb.fix_signal.category} [{lb.fix_signal.rule}]",
+        ]
+    )
     return "\n".join(
         [
             "=" * 88,
-            f"[{position}] {case.case_id}   ({why}; auto rule: {lb.label_rule})",
+            heading,
             f"{case.repo.full_name} | {case.run.workflow_name} | job: {case.failure.job_name}",
             f"failed step: {case.failure.failed_step_name}  (stage: {case.failure.failed_stage})",
             f"run: {case.run.html_url}",
@@ -79,12 +112,52 @@ def render_case(case: CaseRecord, position: str, why: str) -> str:
             *[f"  commit: {c.message.splitlines()[0][:100]}" for c in gt.fix_window.commits[:5]],
             f"files: {', '.join(gt.fix_window.files_changed[:10])}",
             fix_diff,
-            "--- automatic label ---",
-            f"category: {lb.category}  ({lb.label_confidence}, {lb.label_status})",
-            f"log signal: {lb.log_signal.category} [{lb.log_signal.rule}]   "
-            f"fix signal: {lb.fix_signal.category} [{lb.fix_signal.rule}]",
+            *automatic,
         ]
     )
+
+
+def apply_reviews(
+    path: Path, decisions: dict[str, dict[str, Any]], status: ReviewStatus
+) -> dict[str, int]:
+    """Apply reviews from a file instead of an interactive session.
+
+    A decision may deliberately *decline* to label: give it `"category": null` and it
+    keeps `needs_review` and only records the notes. Forcing a category onto evidence
+    that does not support one would write a wrong gold label, and every system's score
+    would then be measured against it - a wrong answer is more expensive here than an
+    unanswered one.
+    """
+    cases = load_cases(path)
+    by_id = {c.case_id: c for c in cases}
+    unknown = sorted(set(decisions) - set(by_id))
+    if unknown:
+        raise ValueError(f"no such case(s) in {path}: {unknown[:5]}")
+
+    applied = declined = 0
+    for case_id, decision in decisions.items():
+        case = by_id[case_id]
+        category = decision.get("category")
+        notes = str(decision.get("notes", "")).strip()
+        if category is None:
+            by_id[case_id] = case.model_copy(
+                update={"labels": case.labels.model_copy(update={"reviewer_notes": notes or None})}
+            )
+            declined += 1
+            continue
+        by_id[case_id] = apply_review(
+            case,
+            FailureCategory(category),
+            str(decision.get("root_cause", "")),
+            str(decision.get("fix_text", "")),
+            notes,
+            audit=bool(decision.get("audit", False)) or case.labels.audited,
+            status=status,
+        )
+        applied += 1
+
+    save_cases(path, [by_id[c.case_id] for c in cases])
+    return {"applied": applied, "declined": declined, "unchanged": len(cases) - len(decisions)}
 
 
 def save_cases(path: Path, cases: list[CaseRecord]) -> None:

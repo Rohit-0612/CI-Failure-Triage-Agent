@@ -15,9 +15,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from ci_triage.github_client import GitHubClient
-from ci_triage.miner.annotate import run_review
+from ci_triage.miner.annotate import apply_reviews, build_queue, render_case, run_review
 from ci_triage.miner.config import load_settings
 from ci_triage.miner.pipeline import Miner
+from ci_triage.miner.schema import REVIEWED_STATUSES
 from ci_triage.miner.stats import compute_stats, format_stats, load_cases, load_rejections
 
 
@@ -47,6 +48,29 @@ def main(argv: list[str] | None = None) -> None:
     annotate = sub.add_parser("annotate", help="review needs_review cases + an audit sample")
     annotate.add_argument("--audit", type=int, default=5, help="audit sample size (total)")
     annotate.add_argument("--seed", type=int, default=0, help="audit sampling seed")
+    annotate.add_argument(
+        "--export",
+        type=Path,
+        help="write the review queue to a file and exit, instead of prompting",
+    )
+    annotate.add_argument(
+        "--blind",
+        action="store_true",
+        help="hide the automatic label, its rule, and review/audit status (use for --export, "
+        "so an audit measures the labeler rather than the reviewer's agreement with it)",
+    )
+    annotate.add_argument(
+        "--apply",
+        type=Path,
+        help="apply decisions from a JSON file {case_id: {category, root_cause, fix_text, "
+        "notes}} instead of prompting; a null category records notes and keeps needs_review",
+    )
+    annotate.add_argument(
+        "--status",
+        choices=sorted(REVIEWED_STATUSES),
+        default="human_verified",
+        help="who did the review being applied (--apply only)",
+    )
 
     args = parser.parse_args(argv)
     configure_logging()
@@ -75,7 +99,34 @@ def main(argv: list[str] | None = None) -> None:
         )
         print(json.dumps(result, indent=2) if args.json else format_stats(result))
     elif args.command == "annotate":
-        run_review(cases_path, args.audit, seed=args.seed)
+        if args.apply:
+            decisions = json.loads(args.apply.read_text(encoding="utf-8"))
+            # Which cases are the audit sample is decided here, not in the decisions
+            # file: audit precision needs the flag set, but a reviewer who knew a case
+            # was an audit case would know the auto-labeler was confident about it.
+            # Computed after the decisions are written, and before they are applied -
+            # the queue is derived from label_status, which applying will change.
+            audit_ids = {
+                cid
+                for cid, why in build_queue(load_cases(cases_path), args.audit, args.seed)
+                if why == "audit"
+            }
+            for case_id in decisions.keys() & audit_ids:
+                decisions[case_id]["audit"] = True
+            result = apply_reviews(cases_path, decisions, args.status)
+            result["audit_cases_flagged"] = len(decisions.keys() & audit_ids)
+            print(json.dumps(result, indent=2))
+        elif args.export:
+            queue = build_queue(load_cases(cases_path), args.audit, args.seed)
+            by_id = {c.case_id: c for c in load_cases(cases_path)}
+            rendered = [
+                render_case(by_id[cid], f"{n}/{len(queue)}", why, blind=args.blind)
+                for n, (cid, why) in enumerate(queue, start=1)
+            ]
+            args.export.write_text("\n\n".join(rendered), encoding="utf-8")
+            print(f"wrote {len(queue)} case(s) to {args.export}")
+        else:
+            run_review(cases_path, args.audit, seed=args.seed)
 
 
 if __name__ == "__main__":
