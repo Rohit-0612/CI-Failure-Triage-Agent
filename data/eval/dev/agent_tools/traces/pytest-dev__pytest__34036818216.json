@@ -1,0 +1,154 @@
+{
+  "case_id": "pytest-dev__pytest__34036818216",
+  "system": "agent_tools_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 4,
+  "usage": {
+    "input_tokens": 12452,
+    "output_tokens": 256
+  },
+  "problems": [],
+  "error": "",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1790491311.5313148,
+      "chars": 23219,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/_pytest/runner.py (at the failed commit)",
+        "file src/_pytest/logging.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/_pytest/runner.py (at the failed commit)",
+        "file src/_pytest/logging.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "decide",
+      "at": 1790491324.364645,
+      "seconds": 12.8,
+      "input_tokens": 1512,
+      "output_tokens": 60,
+      "answer": "search_code"
+    },
+    {
+      "node": "act",
+      "at": 1790491327.661288,
+      "repeated": false,
+      "tool": "search_code",
+      "args": {
+        "pattern": "assert 1 == 0"
+      },
+      "ok": true,
+      "chars": 385,
+      "seconds": 3.3
+    },
+    {
+      "node": "decide",
+      "at": 1790491343.0840268,
+      "seconds": 15.4,
+      "input_tokens": 1651,
+      "output_tokens": 69,
+      "answer": "read_file"
+    },
+    {
+      "node": "act",
+      "at": 1790491343.134562,
+      "repeated": false,
+      "tool": "read_file",
+      "args": {
+        "path": "test_module_cleanups_on_success.py"
+      },
+      "ok": false,
+      "chars": 158,
+      "seconds": 0.0
+    },
+    {
+      "node": "decide",
+      "at": 1790491355.690579,
+      "seconds": 12.6,
+      "input_tokens": 1706,
+      "output_tokens": 35,
+      "answer": "list_files"
+    },
+    {
+      "node": "act",
+      "at": 1790491355.746067,
+      "repeated": false,
+      "tool": "list_files",
+      "args": {},
+      "ok": true,
+      "chars": 1480,
+      "seconds": 0.1
+    },
+    {
+      "node": "propose",
+      "at": 1790491380.815847,
+      "seconds": 25.1,
+      "input_tokens": 7583,
+      "output_tokens": 92,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1790491380.818858,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1790491380.8201358,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 1,
+      "files": [
+        "testing/test_unittest.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "An assertion failed in the test code.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "testing/test_unittest.py"
+    ],
+    "evidence": [
+      {
+        "quote": "assert 1 == 0",
+        "why": "This is the failing assertion in the test code."
+      }
+    ]
+  },
+  "tool_calls": [
+    {
+      "tool": "search_code",
+      "args": {
+        "pattern": "assert 1 == 0"
+      },
+      "ok": true,
+      "chars": 385,
+      "seconds": 3.3
+    },
+    {
+      "tool": "read_file",
+      "args": {
+        "path": "test_module_cleanups_on_success.py"
+      },
+      "ok": false,
+      "chars": 158,
+      "seconds": 0.0
+    },
+    {
+      "tool": "list_files",
+      "args": {},
+      "ok": true,
+      "chars": 1480,
+      "seconds": 0.1
+    }
+  ]
+}

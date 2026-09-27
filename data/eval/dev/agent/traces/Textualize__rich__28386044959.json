@@ -1,0 +1,64 @@
+{
+  "case_id": "Textualize__rich__28386044959",
+  "system": "agent_v2_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 2711,
+    "output_tokens": 148
+  },
+  "problems": [],
+  "error": "",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1790489820.9081259,
+      "chars": 7390,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file .github/workflows/pythonpackage.yml (at the failed commit)"
+      ],
+      "truncated": []
+    },
+    {
+      "node": "propose",
+      "at": 1790489865.734731,
+      "seconds": 44.8,
+      "input_tokens": 2711,
+      "output_tokens": 148,
+      "answer": "DEPENDENCY_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1790489865.756932,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1790489865.759019,
+      "failure_type": "DEPENDENCY_FAILURE",
+      "evidence_items": 1,
+      "files": [
+        ".github/workflows/pythonpackage.yml"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "DEPENDENCY_FAILURE",
+    "root_cause": "The 'poetry' executable could not be located, indicating that Poetry was not installed or configured correctly.",
+    "confidence": 1.0,
+    "suspect_files": [
+      ".github/workflows/pythonpackage.yml"
+    ],
+    "evidence": [
+      {
+        "quote": "Unable to locate executable file: poetry. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.",
+        "why": "This error message directly indicates that the 'poetry' executable is missing."
+      }
+    ]
+  },
+  "tool_calls": []
+}

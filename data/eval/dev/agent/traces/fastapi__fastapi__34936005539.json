@@ -1,0 +1,91 @@
+{
+  "case_id": "fastapi__fastapi__34936005539",
+  "system": "agent_v2_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 6522,
+    "output_tokens": 252
+  },
+  "problems": [],
+  "error": "",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1790490220.610945,
+      "chars": 9558,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file fastapi/dependencies/utils.py (at the failed commit)",
+        "file tests/test_optional_file_list.py (at the failed commit)"
+      ],
+      "truncated": [
+        "file fastapi/dependencies/utils.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1790490255.825483,
+      "seconds": 35.2,
+      "input_tokens": 3030,
+      "output_tokens": 103,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1790490255.831985,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1790490255.83533,
+      "chars": 11640
+    },
+    {
+      "node": "propose",
+      "at": 1790490284.465425,
+      "seconds": 28.6,
+      "input_tokens": 3492,
+      "output_tokens": 149,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1790490284.474901,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1790490284.4772348,
+      "failure_type": "UNKNOWN",
+      "evidence_items": 2,
+      "files": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_optional_file_list.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "UNKNOWN",
+    "root_cause": "The evidence does not provide enough information to determine the root cause of the failure.",
+    "confidence": 0.2,
+    "suspect_files": [
+      "fastapi/dependencies/utils.py",
+      "tests/test_optional_file_list.py"
+    ],
+    "evidence": [
+      {
+        "quote": "exit 1",
+        "why": "The step completed with an exit code of 1, indicating a failure."
+      },
+      {
+        "quote": "##[error]Process completed with exit code 1.",
+        "why": "The error message indicates that the process terminated with an error."
+      }
+    ]
+  },
+  "tool_calls": []
+}

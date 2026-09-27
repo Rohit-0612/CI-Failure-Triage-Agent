@@ -1,0 +1,226 @@
+{
+  "cases_scored": 14,
+  "cases_in_split": 50,
+  "buckets": {
+    "hit": 10,
+    "reasoning": 1,
+    "name_only": 1,
+    "blind": 2,
+    "impossible": 0
+  },
+  "share": {
+    "hit": 0.714,
+    "reasoning": 0.071,
+    "name_only": 0.071,
+    "blind": 0.143,
+    "impossible": 0.0
+  },
+  "tools_reachable": 3,
+  "tools_reachable_share": 0.214,
+  "hit_at_1": 0.714,
+  "ceiling_if_reachable_recovered": 0.929,
+  "per_case": [
+    {
+      "case_id": "pydantic__pydantic__33063609427",
+      "bucket": "blind",
+      "gold_files": [
+        "pydantic-core/src/recursion_guard.rs"
+      ],
+      "predicted": [
+        "tests/pydantic_core/serializers/test_any.py"
+      ],
+      "content_sent": [
+        "docs/plugins/conversion_table.py",
+        "pydantic-core/python/pydantic_core/core_schema.py"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__33236247623",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_basic.py"
+      ],
+      "predicted": [
+        "tests/test_basic.py"
+      ],
+      "content_sent": [
+        "src/flask/sansio/app.py",
+        "src/flask/sansio/scaffold.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34216472101",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/typing/typing_path.py"
+      ],
+      "predicted": [
+        "tests/typing/typing_path.py"
+      ],
+      "content_sent": [
+        "src/click/types.py",
+        "tests/test_types/test_Path.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__33386024559",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_tests.py"
+      ],
+      "predicted": [
+        "tests/test_tests.py"
+      ],
+      "content_sent": [
+        "src/jinja2/tests.py",
+        "tests/test_api.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__32448268750",
+      "bucket": "hit",
+      "gold_files": [
+        "src/werkzeug/formparser.py",
+        "tests/test_formparser.py"
+      ],
+      "predicted": [
+        "tests/test_formparser.py"
+      ],
+      "content_sent": [
+        "tests/middleware/test_dispatcher.py",
+        "tests/middleware/test_http_proxy.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34229763670",
+      "bucket": "hit",
+      "gold_files": [
+        "testing/code/test_excinfo.py"
+      ],
+      "predicted": [
+        "testing/code/test_excinfo.py"
+      ],
+      "content_sent": [
+        "testing/_py/test_local.py",
+        "testing/code/test_excinfo.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34036818216",
+      "bucket": "hit",
+      "gold_files": [
+        "testing/test_unittest.py"
+      ],
+      "predicted": [
+        "testing/test_unittest.py",
+        "src/_pytest/runner.py",
+        "src/_pytest/logging.py"
+      ],
+      "content_sent": [
+        "src/_pytest/logging.py",
+        "src/_pytest/runner.py"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28386044959",
+      "bucket": "hit",
+      "gold_files": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "predicted": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "content_sent": [
+        ".github/workflows/pythonpackage.yml"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28385515156",
+      "bucket": "hit",
+      "gold_files": [
+        "rich/syntax.py"
+      ],
+      "predicted": [
+        "rich/syntax.py"
+      ],
+      "content_sent": [
+        "benchmarks/benchmarks.py",
+        "rich/syntax.py"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28362378531",
+      "bucket": "hit",
+      "gold_files": [
+        "tests/test_syntax.py"
+      ],
+      "predicted": [
+        "tests/test_syntax.py"
+      ],
+      "content_sent": [
+        "rich/syntax.py",
+        "tests/test_syntax.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__33952995268",
+      "bucket": "hit",
+      "gold_files": [
+        "pyproject.toml",
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ],
+      "predicted": [
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ],
+      "content_sent": [
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__33862853375",
+      "bucket": "name_only",
+      "gold_files": [
+        "tests/test_testclient.py"
+      ],
+      "predicted": [
+        "tests/test_websockets.py",
+        "starlette/testclient.py"
+      ],
+      "content_sent": [
+        "starlette/testclient.py",
+        "tests/test_websockets.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34936005539",
+      "bucket": "reasoning",
+      "gold_files": [
+        "tests/test_optional_file_list.py"
+      ],
+      "predicted": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_optional_file_list.py"
+      ],
+      "content_sent": [
+        "fastapi/dependencies/utils.py",
+        "tests/test_optional_file_list.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34835273060",
+      "bucket": "blind",
+      "gold_files": [
+        "tests/test_query_cookie_header_model_extra_params.py"
+      ],
+      "predicted": [
+        "fastapi/dependencies/utils.py"
+      ],
+      "content_sent": [
+        "fastapi/dependencies/utils.py"
+      ]
+    }
+  ]
+}

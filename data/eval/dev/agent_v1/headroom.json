@@ -1,39 +1,25 @@
 {
-  "cases_scored": 42,
+  "cases_scored": 40,
+  "cases_in_split": 50,
   "buckets": {
-    "hit": 27,
+    "hit": 26,
     "reasoning": 2,
-    "name_only": 7,
+    "name_only": 6,
     "blind": 5,
     "impossible": 1
   },
   "share": {
-    "hit": 0.643,
-    "reasoning": 0.048,
-    "name_only": 0.167,
-    "blind": 0.119,
-    "impossible": 0.024
+    "hit": 0.65,
+    "reasoning": 0.05,
+    "name_only": 0.15,
+    "blind": 0.125,
+    "impossible": 0.025
   },
-  "tools_reachable": 12,
-  "tools_reachable_share": 0.286,
-  "hit_at_1": 0.643,
-  "ceiling_if_reachable_recovered": 0.929,
+  "tools_reachable": 11,
+  "tools_reachable_share": 0.275,
+  "hit_at_1": 0.65,
+  "ceiling_if_reachable_recovered": 0.925,
   "per_case": [
-    {
-      "case_id": "pydantic__pydantic__33082044287",
-      "bucket": "name_only",
-      "gold_files": [
-        "tests/test_schema_gather.py"
-      ],
-      "predicted": [
-        "pydantic-core/python/pydantic_core/_pydantic_core.pyi",
-        "pydantic-core/python/pydantic_core/_pydantic_core/_schema_gather.pyi"
-      ],
-      "content_sent": [
-        "pydantic-core/python/pydantic_core/_pydantic_core/__init__.pyi",
-        "pydantic-core/python/pydantic_core/_pydantic_core/_schema_gather.pyi"
-      ]
-    },
     {
       "case_id": "pydantic__pydantic__33066070414",
       "bucket": "hit",
@@ -575,28 +561,6 @@
       "content_sent": [
         "tests/test_reinstall.py",
         "tests/test_upgrade.py"
-      ]
-    },
-    {
-      "case_id": "pypa__pipx__31639702870",
-      "bucket": "hit",
-      "gold_files": [
-        "src/pipx/standalone_python.py",
-        "testdata/standalone_python_index_20250818.json",
-        "testdata/standalone_python_index_20250828.json",
-        "tests/conftest.py",
-        "tests/helpers.py",
-        "tests/test_install.py",
-        "tests/test_interpreter.py",
-        "tests/test_list.py",
-        "tests/test_standalone_interpreter.py"
-      ],
-      "predicted": [
-        "tests/test_install.py"
-      ],
-      "content_sent": [
-        "tests/test_install.py",
-        "tests/test_interpreter.py"
       ]
     },
     {

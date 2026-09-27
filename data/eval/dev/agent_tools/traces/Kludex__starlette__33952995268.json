@@ -1,0 +1,163 @@
+{
+  "case_id": "Kludex__starlette__33952995268",
+  "system": "agent_tools_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 4,
+  "usage": {
+    "input_tokens": 22891,
+    "output_tokens": 432
+  },
+  "problems": [],
+  "error": "",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1790526712.110176,
+      "chars": 18845,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file starlette/middleware/base.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ],
+      "truncated": [
+        "changes since the last passing run (pr_merge_base)",
+        "file starlette/middleware/base.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "decide",
+      "at": 1790526729.804224,
+      "seconds": 17.7,
+      "input_tokens": 1523,
+      "output_tokens": 53,
+      "answer": "read_file"
+    },
+    {
+      "node": "act",
+      "at": 1790526731.952034,
+      "repeated": false,
+      "tool": "read_file",
+      "args": {
+        "path": "pyproject.toml"
+      },
+      "ok": true,
+      "chars": 5026,
+      "seconds": 2.1
+    },
+    {
+      "node": "decide",
+      "at": 1790526769.419216,
+      "seconds": 37.5,
+      "input_tokens": 3419,
+      "output_tokens": 57,
+      "answer": "read_file"
+    },
+    {
+      "node": "act",
+      "at": 1790526769.4705448,
+      "repeated": false,
+      "tool": "read_file",
+      "args": {
+        "path": "starlette/middleware/base.py"
+      },
+      "ok": true,
+      "chars": 6027,
+      "seconds": 0.0
+    },
+    {
+      "node": "decide",
+      "at": 1790526831.8179998,
+      "seconds": 62.3,
+      "input_tokens": 5045,
+      "output_tokens": 57,
+      "answer": "read_file"
+    },
+    {
+      "node": "act",
+      "at": 1790526831.863353,
+      "repeated": false,
+      "tool": "read_file",
+      "args": {
+        "path": "starlette/testclient.py"
+      },
+      "ok": true,
+      "chars": 6027,
+      "seconds": 0.0
+    },
+    {
+      "node": "propose",
+      "at": 1790527086.7238631,
+      "seconds": 254.9,
+      "input_tokens": 12904,
+      "output_tokens": 265,
+      "answer": "TYPE_ERROR"
+    },
+    {
+      "node": "validate",
+      "at": 1790527086.7292411,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1790527086.730936,
+      "failure_type": "TYPE_ERROR",
+      "evidence_items": 2,
+      "files": [
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TYPE_ERROR",
+    "root_cause": "mypy reported type errors in starlette/middleware/base.py and starlette/testclient.py",
+    "confidence": 1.0,
+    "suspect_files": [
+      "starlette/middleware/base.py",
+      "starlette/testclient.py"
+    ],
+    "evidence": [
+      {
+        "quote": "starlette/middleware/base.py:189: error: Incompatible types in assignment (expression has type \"tuple[MemoryObjectSendStream[MutableMapping[str, Any]], MemoryObjectReceiveStream[MutableMapping[str, Any]]]\", variable has type \"create_memory_",
+        "why": "This line indicates a type error in starlette/middleware/base.py, specifically at line 189."
+      },
+      {
+        "quote": "starlette/testclient.py:137: error: Incompatible types in assignment (expression has type \"tuple[MemoryObjectSendStream[MutableMapping[str, Any]], MemoryObjectReceiveStream[MutableMapping[str, Any]]]\", variable has type \"create_memory_",
+        "why": "This line indicates a type error in starlette/testclient.py, specifically at line 137."
+      }
+    ]
+  },
+  "tool_calls": [
+    {
+      "tool": "read_file",
+      "args": {
+        "path": "pyproject.toml"
+      },
+      "ok": true,
+      "chars": 5026,
+      "seconds": 2.1
+    },
+    {
+      "tool": "read_file",
+      "args": {
+        "path": "starlette/middleware/base.py"
+      },
+      "ok": true,
+      "chars": 6027,
+      "seconds": 0.0
+    },
+    {
+      "tool": "read_file",
+      "args": {
+        "path": "starlette/testclient.py"
+      },
+      "ok": true,
+      "chars": 6027,
+      "seconds": 0.0
+    }
+  ]
+}

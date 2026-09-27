@@ -1,0 +1,169 @@
+{
+  "case_id": "Kludex__starlette__33862853375",
+  "system": "agent_tools_v1_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 4,
+  "usage": {
+    "input_tokens": 14201,
+    "output_tokens": 688
+  },
+  "problems": [],
+  "error": "",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1790527086.7540638,
+      "chars": 17508,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/test_websockets.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file tests/test_websockets.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "decide",
+      "at": 1790527102.072355,
+      "seconds": 15.3,
+      "input_tokens": 1175,
+      "output_tokens": 50,
+      "answer": "search_code"
+    },
+    {
+      "node": "act",
+      "at": 1790527104.009877,
+      "repeated": false,
+      "tool": "search_code",
+      "args": {
+        "path": "tests",
+        "pattern": "WebSocketDenialResponse"
+      },
+      "ok": true,
+      "chars": 483,
+      "seconds": 1.9
+    },
+    {
+      "node": "decide",
+      "at": 1790527118.851382,
+      "seconds": 14.8,
+      "input_tokens": 1312,
+      "output_tokens": 56,
+      "answer": "read_file"
+    },
+    {
+      "node": "act",
+      "at": 1790527118.958163,
+      "repeated": false,
+      "tool": "read_file",
+      "args": {
+        "path": "tests/test_responses.py"
+      },
+      "ok": true,
+      "chars": 6027,
+      "seconds": 0.1
+    },
+    {
+      "node": "decide",
+      "at": 1790527167.450196,
+      "seconds": 48.5,
+      "input_tokens": 3095,
+      "output_tokens": 69,
+      "answer": "read_file"
+    },
+    {
+      "node": "act",
+      "at": 1790527167.556171,
+      "repeated": false,
+      "tool": "read_file",
+      "args": {
+        "path": "tests/test_testclient.py"
+      },
+      "ok": true,
+      "chars": 6027,
+      "seconds": 0.1
+    },
+    {
+      "node": "propose",
+      "at": 1790527412.177331,
+      "seconds": 244.6,
+      "input_tokens": 8619,
+      "output_tokens": 513,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1790527412.1901262,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1790527412.20096,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 3,
+      "files": [
+        "tests/test_websockets.py",
+        "starlette/testclient.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "The test `test_send_denial_response_with_streaming_response[asyncio]` in `tests/test_websockets.py` failed because it raised a `WebSocketDenialResponse` exception, which was not expected.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_websockets.py",
+      "starlette/testclient.py"
+    ],
+    "evidence": [
+      {
+        "quote": "tests/test_websockets.py:320: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nstarlette/testclient.py:123: in __enter__\n    self._raise_on_close(message)\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+        "why": "This is the line where the `WebSocketDenialResponse` exception is raised."
+      },
+      {
+        "quote": "tests/test_websockets.py:340: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nstarlette/testclient.py:123: in __enter__\n    self._raise_on_close(message)\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+        "why": "This is another line where the `WebSocketDenialResponse` exception is raised."
+      },
+      {
+        "quote": "tests/test_websockets.py:358: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nstarlette/testclient.py:123: in __enter__\n    self._raise_on_close(message)\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+        "why": "This is yet another line where the `WebSocketDenialResponse` exception is raised."
+      }
+    ]
+  },
+  "tool_calls": [
+    {
+      "tool": "search_code",
+      "args": {
+        "path": "tests",
+        "pattern": "WebSocketDenialResponse"
+      },
+      "ok": true,
+      "chars": 483,
+      "seconds": 1.9
+    },
+    {
+      "tool": "read_file",
+      "args": {
+        "path": "tests/test_responses.py"
+      },
+      "ok": true,
+      "chars": 6027,
+      "seconds": 0.1
+    },
+    {
+      "tool": "read_file",
+      "args": {
+        "path": "tests/test_testclient.py"
+      },
+      "ok": true,
+      "chars": 6027,
+      "seconds": 0.1
+    }
+  ]
+}

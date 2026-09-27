@@ -1,0 +1,78 @@
+{
+  "case_id": "pytest-dev__pytest__34036818216",
+  "system": "agent_v2_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 6860,
+    "output_tokens": 164
+  },
+  "problems": [],
+  "error": "",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1790489718.700969,
+      "chars": 23219,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/_pytest/runner.py (at the failed commit)",
+        "file src/_pytest/logging.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file src/_pytest/runner.py (at the failed commit)",
+        "file src/_pytest/logging.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1790489820.876535,
+      "seconds": 102.2,
+      "input_tokens": 6860,
+      "output_tokens": 164,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1790489820.886374,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1790489820.888036,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "testing/test_unittest.py",
+        "src/_pytest/runner.py",
+        "src/_pytest/logging.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "An assertion failed in the test_module_cleanups_on_success.py test case.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "testing/test_unittest.py",
+      "src/_pytest/runner.py",
+      "src/_pytest/logging.py"
+    ],
+    "evidence": [
+      {
+        "quote": "assert 1 == 0",
+        "why": "This is the failing assertion in the test_module_cleanups_on_success.py test case."
+      },
+      {
+        "quote": "ExceptionGroup: Unittest module cleanup errors (1 sub-exception)",
+        "why": "This indicates that there was an error during the module cleanup process."
+      }
+    ]
+  },
+  "tool_calls": []
+}

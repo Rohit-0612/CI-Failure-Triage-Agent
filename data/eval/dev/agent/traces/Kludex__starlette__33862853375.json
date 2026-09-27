@@ -1,0 +1,75 @@
+{
+  "case_id": "Kludex__starlette__33862853375",
+  "system": "agent_v2_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 1,
+  "usage": {
+    "input_tokens": 4896,
+    "output_tokens": 247
+  },
+  "problems": [],
+  "error": "",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1790490184.362586,
+      "chars": 17508,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (pr_merge_base)",
+        "file tests/test_websockets.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file tests/test_websockets.py (at the failed commit)",
+        "file starlette/testclient.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1790490220.596753,
+      "seconds": 36.2,
+      "input_tokens": 4896,
+      "output_tokens": 247,
+      "answer": "TEST_FAILURE"
+    },
+    {
+      "node": "validate",
+      "at": 1790490220.6014478,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1790490220.6030312,
+      "failure_type": "TEST_FAILURE",
+      "evidence_items": 2,
+      "files": [
+        "tests/test_websockets.py",
+        "starlette/testclient.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "TEST_FAILURE",
+    "root_cause": "The test `test_send_denial_response_with_streaming_response[asyncio]` and `test_send_denial_response_with_file_response[asyncio]` failed because the `WebSocketDenialResponse` was raised unexpectedly.",
+    "confidence": 1.0,
+    "suspect_files": [
+      "tests/test_websockets.py",
+      "starlette/testclient.py"
+    ],
+    "evidence": [
+      {
+        "quote": "tests/test_websockets.py:320: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nstarlette/testclient.py:123: in __enter__\n    self._raise_on_close(message)",
+        "why": "This shows the test and the method where the exception is raised."
+      },
+      {
+        "quote": "starlette/testclient.py:163: WebSocketDenialResponse",
+        "why": "This confirms the exception being raised."
+      }
+    ]
+  },
+  "tool_calls": []
+}

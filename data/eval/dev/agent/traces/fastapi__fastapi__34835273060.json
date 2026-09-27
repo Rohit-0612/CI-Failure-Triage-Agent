@@ -1,0 +1,89 @@
+{
+  "case_id": "fastapi__fastapi__34835273060",
+  "system": "agent_v2_ollama-qwen2.5-coder-7b",
+  "model": "ollama:qwen2.5-coder:7b",
+  "llm_calls": 2,
+  "usage": {
+    "input_tokens": 8581,
+    "output_tokens": 312
+  },
+  "problems": [],
+  "error": "",
+  "steps": [
+    {
+      "node": "pack_evidence",
+      "at": 1790490284.482464,
+      "chars": 12551,
+      "sections": [
+        "failure facts",
+        "error lines from the failed step",
+        "failed step log (excerpt)",
+        "changes since the last passing run (last_green)",
+        "file fastapi/dependencies/utils.py (at the failed commit)"
+      ],
+      "truncated": [
+        "failed step log (excerpt)",
+        "file fastapi/dependencies/utils.py (at the failed commit)"
+      ]
+    },
+    {
+      "node": "propose",
+      "at": 1790490334.140346,
+      "seconds": 49.7,
+      "input_tokens": 3541,
+      "output_tokens": 148,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1790490334.1461499,
+      "problems": []
+    },
+    {
+      "node": "expand_evidence",
+      "at": 1790490334.1478028,
+      "chars": 19113
+    },
+    {
+      "node": "propose",
+      "at": 1790490383.559106,
+      "seconds": 49.4,
+      "input_tokens": 5040,
+      "output_tokens": 164,
+      "answer": "UNKNOWN"
+    },
+    {
+      "node": "validate",
+      "at": 1790490383.567911,
+      "problems": []
+    },
+    {
+      "node": "finalize",
+      "at": 1790490383.5734332,
+      "failure_type": "UNKNOWN",
+      "evidence_items": 2,
+      "files": [
+        "fastapi/dependencies/utils.py"
+      ]
+    }
+  ],
+  "raw_proposal": {
+    "failure_type": "UNKNOWN",
+    "root_cause": "The evidence does not provide enough information to determine the root cause of the failure.",
+    "confidence": 0.2,
+    "suspect_files": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "evidence": [
+      {
+        "quote": "uv run coverage report --fail-under=100",
+        "why": "This command is being run, but it is not failing. The failure is not related to the coverage report."
+      },
+      {
+        "quote": "Name                                                                                       Stmts   Miss  Cover   Missing",
+        "why": "This output indicates that all tests passed with 100% coverage, which contradicts the failure."
+      }
+    ]
+  },
+  "tool_calls": []
+}

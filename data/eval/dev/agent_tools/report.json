@@ -1,0 +1,426 @@
+{
+  "system": "agent_tools_v1_ollama-qwen2.5-coder-7b",
+  "split": "dev",
+  "cases": 15,
+  "errors": 0,
+  "category_accuracy": {
+    "all": {
+      "n": 15,
+      "hits": 8,
+      "rate": 0.533,
+      "ci95": [
+        0.301,
+        0.752
+      ],
+      "confusion": {
+        "CI_CONFIGURATION_FAILURE": {
+          "DEPENDENCY_FAILURE": 1
+        },
+        "COVERAGE_FAILURE": {
+          "UNKNOWN": 1
+        },
+        "FORMAT_FAILURE": {
+          "LINT_FAILURE": 2,
+          "FORMAT_FAILURE": 1,
+          "UNKNOWN": 1
+        },
+        "LINT_FAILURE": {
+          "LINT_FAILURE": 1
+        },
+        "NETWORK_FAILURE": {
+          "TEST_FAILURE": 1
+        },
+        "TEST_FAILURE": {
+          "TEST_FAILURE": 4,
+          "ENVIRONMENT_FAILURE": 1
+        },
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 2
+        }
+      }
+    },
+    "auto_verified": {
+      "n": 9,
+      "hits": 6,
+      "rate": 0.667,
+      "ci95": [
+        0.354,
+        0.879
+      ],
+      "confusion": {
+        "CI_CONFIGURATION_FAILURE": {
+          "DEPENDENCY_FAILURE": 1
+        },
+        "FORMAT_FAILURE": {
+          "LINT_FAILURE": 2,
+          "FORMAT_FAILURE": 1
+        },
+        "LINT_FAILURE": {
+          "LINT_FAILURE": 1
+        },
+        "TEST_FAILURE": {
+          "TEST_FAILURE": 3
+        },
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 1
+        }
+      }
+    },
+    "model_reviewed": {
+      "n": 6,
+      "hits": 2,
+      "rate": 0.333,
+      "ci95": [
+        0.097,
+        0.7
+      ],
+      "confusion": {
+        "COVERAGE_FAILURE": {
+          "UNKNOWN": 1
+        },
+        "FORMAT_FAILURE": {
+          "UNKNOWN": 1
+        },
+        "NETWORK_FAILURE": {
+          "TEST_FAILURE": 1
+        },
+        "TEST_FAILURE": {
+          "ENVIRONMENT_FAILURE": 1,
+          "TEST_FAILURE": 1
+        },
+        "TYPE_ERROR": {
+          "TYPE_ERROR": 1
+        }
+      }
+    }
+  },
+  "abstention_rate": 0.133,
+  "localization": {
+    "n": 14,
+    "hit@1": {
+      "n": 14,
+      "hits": 10,
+      "rate": 0.714,
+      "ci95": [
+        0.454,
+        0.883
+      ]
+    },
+    "hit@3": {
+      "n": 14,
+      "hits": 11,
+      "rate": 0.786,
+      "ci95": [
+        0.524,
+        0.924
+      ]
+    },
+    "mrr": 0.738,
+    "recall@5": 0.726,
+    "excluded": {
+      "non_code_category:NETWORK_FAILURE": 1
+    }
+  },
+  "evidence_grounding": {
+    "items": 26,
+    "grounded": 26,
+    "rate": 1.0,
+    "cases_with_ungrounded_evidence": 0
+  },
+  "operational": {
+    "latency_ms_mean": 207334.584,
+    "latency_ms_p95": 409927.443,
+    "tool_calls_total": 42,
+    "llm_calls_total": 63,
+    "cost_usd_total": 0.0,
+    "tokens": {
+      "input": 216985,
+      "output": 6045
+    }
+  },
+  "per_case": [
+    {
+      "case_id": "pydantic__pydantic__33063609427",
+      "gold": "TEST_FAILURE",
+      "gold_status": "model_reviewed",
+      "pred": "ENVIRONMENT_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "pydantic-core/src/recursion_guard.rs"
+      ],
+      "top_files": [
+        "tests/pydantic_core/serializers/test_any.py",
+        "pydantic-core/src/serializers/type_serializers/frozendict.rs"
+      ]
+    },
+    {
+      "case_id": "pallets__flask__33236247623",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_basic.py"
+      ],
+      "top_files": [
+        "tests/test_basic.py"
+      ]
+    },
+    {
+      "case_id": "pallets__click__34216472101",
+      "gold": "LINT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/typing/typing_path.py"
+      ],
+      "top_files": [
+        "tests/typing/typing_path.py"
+      ]
+    },
+    {
+      "case_id": "pallets__jinja__33386024559",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "LINT_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_tests.py"
+      ],
+      "top_files": [
+        "tests/test_tests.py"
+      ]
+    },
+    {
+      "case_id": "pallets__werkzeug__32448268750",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 0.5
+      },
+      "gold_files": [
+        "src/werkzeug/formparser.py",
+        "tests/test_formparser.py"
+      ],
+      "top_files": [
+        "tests/test_formparser.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34229763670",
+      "gold": "TEST_FAILURE",
+      "gold_status": "model_reviewed",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "testing/code/test_excinfo.py"
+      ],
+      "top_files": [
+        "testing/code/test_excinfo.py"
+      ]
+    },
+    {
+      "case_id": "pytest-dev__pytest__34036818216",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "testing/test_unittest.py"
+      ],
+      "top_files": [
+        "testing/test_unittest.py"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28386044959",
+      "gold": "CI_CONFIGURATION_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "DEPENDENCY_FAILURE",
+      "correct": false,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        ".github/workflows/pythonpackage.yml"
+      ],
+      "top_files": [
+        ".github/workflows/pythonpackage.yml",
+        "pyproject.toml"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28385515156",
+      "gold": "TYPE_ERROR",
+      "gold_status": "auto_verified",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "rich/syntax.py"
+      ],
+      "top_files": [
+        "rich/syntax.py"
+      ]
+    },
+    {
+      "case_id": "Textualize__rich__28362378531",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "FORMAT_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_syntax.py"
+      ],
+      "top_files": [
+        "tests/test_syntax.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__33952995268",
+      "gold": "TYPE_ERROR",
+      "gold_status": "model_reviewed",
+      "pred": "TYPE_ERROR",
+      "correct": true,
+      "localization": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "rr": 1.0,
+        "recall@5": 0.6666666666666666
+      },
+      "gold_files": [
+        "pyproject.toml",
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ],
+      "top_files": [
+        "starlette/middleware/base.py",
+        "starlette/testclient.py"
+      ]
+    },
+    {
+      "case_id": "Kludex__starlette__33862853375",
+      "gold": "TEST_FAILURE",
+      "gold_status": "auto_verified",
+      "pred": "TEST_FAILURE",
+      "correct": true,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "tests/test_testclient.py"
+      ],
+      "top_files": [
+        "tests/test_websockets.py",
+        "starlette/testclient.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34936005539",
+      "gold": "FORMAT_FAILURE",
+      "gold_status": "model_reviewed",
+      "pred": "UNKNOWN",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "rr": 0.3333333333333333,
+        "recall@5": 1.0
+      },
+      "gold_files": [
+        "tests/test_optional_file_list.py"
+      ],
+      "top_files": [
+        ".pre-commit-config.yaml",
+        "fastapi/dependencies/utils.py",
+        "tests/test_optional_file_list.py"
+      ]
+    },
+    {
+      "case_id": "fastapi__fastapi__34835273060",
+      "gold": "COVERAGE_FAILURE",
+      "gold_status": "model_reviewed",
+      "pred": "UNKNOWN",
+      "correct": false,
+      "localization": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "rr": 0.0,
+        "recall@5": 0.0
+      },
+      "gold_files": [
+        "tests/test_query_cookie_header_model_extra_params.py"
+      ],
+      "top_files": [
+        "fastapi/dependencies/utils.py"
+      ]
+    },
+    {
+      "case_id": "pypa__pipx__31639702870",
+      "gold": "NETWORK_FAILURE",
+      "gold_status": "model_reviewed",
+      "pred": "TEST_FAILURE",
+      "correct": false
+    }
+  ],
+  "scored_cases_of_split": "15/50"
+}
