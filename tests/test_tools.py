@@ -102,16 +102,51 @@ def test_reads_are_of_the_failed_commit_not_the_current_branch(toolbox):
 # ----------------------------------------------------------------------- tools
 
 
-def test_read_file_numbers_lines_and_honours_a_range(toolbox):
-    result = toolbox.run("read_file", {"path": "src/app.py", "start_line": 1, "end_line": 3})
-    assert result.ok
-    assert "    1  def add(a, b):" in result.content
-    assert result.content.count("\n") <= 4  # header plus three lines
+def test_read_file_numbers_lines_and_starts_where_asked(toolbox):
+    whole = toolbox.run("read_file", {"path": "src/app.py"})
+    assert whole.ok
+    assert whole.content.startswith("src/app.py lines 1-32 of 32")
+    assert "    1  def add(a, b):" in whole.content
+
+    later = toolbox.run("read_file", {"path": "src/app.py", "start_line": 30})
+    assert later.content.startswith("src/app.py lines 30-32 of 32")
+    assert "    1  def add(a, b):" not in later.content
+
+
+def test_the_reported_line_range_is_the_range_actually_returned(broken_project, tmp_path):
+    """The live agent read the file that broke the build and still answered wrongly: it
+    had been promised "lines 1-200 of 500" and handed 62, because the character cap cut
+    the text after the header was written. A header that overstates what was read is
+    worse than a short read, because nothing downstream can tell."""
+    sha = broken_project["commit"](
+        broken_project["src"],
+        {"big.py": "".join(f"line_{i} = {i}\n" for i in range(1, 1001))},
+        "a long file",
+    )
+    repo = GitRepo.open_or_init(tmp_path, "o/r", remote_url=str(broken_project["src"]))
+    repo.fetch([sha])
+
+    result = Toolbox(repo=repo, sha=sha).run("read_file", {"path": "big.py"})
+
+    first, body = result.content.split("\n", 1)
+    assert "of 1000" in first
+    last_reported = int(first.split(" of ")[0].split("-")[-1])
+    assert body.count("\n") + 1 == last_reported  # every promised line is present
+    assert f"line_{last_reported} =" in body
+    assert "more lines follow" in first  # and it says how to get the rest
+
+    # Being able to aim the window is what makes read_file useful on a real source
+    # file; without it the model only ever sees the imports.
+    box = Toolbox(repo=repo, sha=sha)
+    assert "line_990 =" not in box.run("read_file", {"path": "big.py"}).content
+    far = box.run("read_file", {"path": "big.py", "start_line": 950})
+    assert "line_990 =" in far.content
+    assert "more lines follow" not in far.content  # the tail really is the tail
 
 
 def test_read_file_caps_how_much_of_a_file_comes_back(toolbox):
     result = toolbox.run("read_file", {"path": "src/app.py"})
-    assert len(result.content) <= toolbox.max_result_chars + 100
+    assert len(result.content) <= toolbox.max_read_chars + 100
 
 
 def test_read_file_explains_a_missing_path_instead_of_failing(toolbox):

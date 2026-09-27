@@ -40,6 +40,9 @@ from ci_triage.git_local import GitError, GitRepo
 logger = logging.getLogger(__name__)
 
 MAX_RESULT_CHARS = 2_500
+# A file read gets more room than a listing or a search hit list: 2_500 chars is about
+# 60 lines, and a 500-line source file read 60 lines at a time is not worth a model call.
+MAX_READ_CHARS = 6_000
 MAX_FILE_LINES = 200
 MAX_LISTED_FILES = 60
 MAX_PATH_LENGTH = 300
@@ -54,7 +57,9 @@ TOOL_NAMES = ("read_file", "search_code", "list_files")
 TOOL_DESCRIPTIONS = {
     "read_file": (
         'read_file - read a source file as it was at the failed commit. Set "path" to '
-        'the file, for example "src/pkg/thing.py", and "pattern" to "". '
+        'the file, for example "src/pkg/thing.py", and "pattern" to "". Long files come '
+        'back a window at a time; set "start_line" to read from a particular line, for '
+        "example the line number search_code reported. "
         "Use this when the log names a file you have not been shown."
     ),
     "search_code": (
@@ -128,20 +133,16 @@ def safe_path(raw: Any, *, allow_empty: bool = False) -> str:
     return path
 
 
-def _line_bounds(args: dict[str, Any], total: int) -> tuple[int, int]:
-    """1-based, inclusive, clamped. Bad numbers fall back to the start of the file."""
+def _start_line(args: dict[str, Any], total: int) -> int:
+    """Where to start reading. Anything unusable starts at the top of the file.
 
-    def number(key: str, default: int) -> int:
-        value = args.get(key)
-        if isinstance(value, bool) or not isinstance(value, int | float):
-            return default
-        return int(value)
-
-    start = max(1, number("start_line", 1))
-    end = number("end_line", start + MAX_FILE_LINES - 1)
-    if end < start:
-        end = start + MAX_FILE_LINES - 1
-    return start, min(end, start + MAX_FILE_LINES - 1, total)
+    How far the window reaches is decided by the character budget, not by the model:
+    asking it for both ends gives it two more fields to get wrong for no benefit.
+    """
+    value = args.get("start_line")
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return 1
+    return max(1, min(int(value), max(total, 1)))
 
 
 @dataclass
@@ -151,6 +152,7 @@ class Toolbox:
     repo: GitRepo
     sha: str
     max_result_chars: int = MAX_RESULT_CHARS
+    max_read_chars: int = MAX_READ_CHARS
     calls: list[ToolResult] = field(default_factory=list)
     _hydrated: bool = False
 
@@ -178,17 +180,23 @@ class Toolbox:
             name=name,
             args=args,
             ok=ok,
-            content=self._bound(body),
+            content=self._bound(body, name),
             seconds=time.perf_counter() - started,
         )
         self.calls.append(result)
         return result
 
-    def _bound(self, text: str) -> str:
-        """Sanitize and cap. Tool output is repository text like any other evidence."""
+    def _bound(self, text: str, tool: str) -> str:
+        """Sanitize and cap. Tool output is repository text like any other evidence.
+
+        A file read is allowed more room than a listing: read_file already cut its own
+        window to MAX_READ_CHARS, so a smaller cap here would silently re-cut it and
+        contradict the line range it just reported.
+        """
+        limit = self.max_read_chars if tool == "read_file" else self.max_result_chars
         clean = sanitize(text)
-        if len(clean) > self.max_result_chars:
-            return clean[: self.max_result_chars] + "\n[... result truncated ...]"
+        if len(clean) > limit:
+            return clean[:limit] + "\n[... result truncated ...]"
         return clean
 
     def _hydrate(self) -> None:
@@ -200,20 +208,40 @@ class Toolbox:
     # ------------------------------------------------------------------ the tools
 
     def _read_file(self, args: dict[str, Any]) -> str:
+        """A window of the file, honestly labelled.
+
+        The window is cut by characters, not by the requested line count, and the header
+        names the lines actually returned. The first version promised "lines 1-200 of
+        500" and then let the char cap silently drop everything past line 62, so the
+        model was told it had read a file it had barely opened.
+        """
         path = safe_path(args.get("path"))
         self._hydrate()
-        found = self.repo.read_file(self.sha, path, max_chars=200_000)
+        found = self.repo.read_file(self.sha, path, max_chars=400_000)
         if found is None:
             raise ToolError(
                 f"{path!r} does not exist at the failed commit (or is not a text file). "
                 "Use list_files or search_code to find the right path."
             )
         lines = found[0].splitlines()
-        start, end = _line_bounds(args, len(lines))
-        numbered = "\n".join(
-            f"{number:>5}  {text}" for number, text in enumerate(lines[start - 1 : end], start)
-        )
-        return f"{path} (lines {start}-{end} of {len(lines)})\n{numbered}"
+        total = len(lines)
+        start = _start_line(args, total)
+
+        shown, used = [], 0
+        for number in range(start, min(total, start + MAX_FILE_LINES) + 1):
+            row = f"{number:>5}  {lines[number - 1]}"
+            if used + len(row) + 1 > MAX_READ_CHARS and shown:
+                break
+            shown.append(row)
+            used += len(row) + 1
+
+        last = start + len(shown) - 1
+        header = f"{path} lines {start}-{last} of {total}"
+        if last < total:
+            header += (
+                f'; {total - last} more lines follow - read again with "start_line": {last + 1}'
+            )
+        return header + "\n" + "\n".join(shown)
 
     def _search_code(self, args: dict[str, Any]) -> str:
         pattern = args.get("pattern")

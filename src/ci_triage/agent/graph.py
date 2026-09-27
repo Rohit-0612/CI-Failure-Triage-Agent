@@ -204,7 +204,7 @@ def build_graph(
         name = str(action.get("action", ""))
         args = {
             key: action[key]
-            for key in ("path", "pattern", "start_line", "end_line")
+            for key in ("path", "pattern", "start_line")
             if action.get(key) not in (None, "")
         }
         previous = state.get("tool_results", [])

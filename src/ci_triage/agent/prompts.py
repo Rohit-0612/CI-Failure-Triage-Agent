@@ -119,6 +119,9 @@ ACTION_SCHEMA: dict[str, Any] = {
         "action": {"type": "string", "enum": [*TOOL_NAMES, "answer"]},
         "path": {"type": "string"},
         "pattern": {"type": "string"},
+        # Optional on purpose: unlike path and pattern, a missing start_line has a sane
+        # meaning (the top of the file), so requiring it only adds a field to fumble.
+        "start_line": {"type": "integer"},
         "reason": {"type": "string"},
     },
     # `path` and `pattern` are required even though each action uses only one of them.
