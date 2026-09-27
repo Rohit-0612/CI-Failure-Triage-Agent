@@ -14,12 +14,11 @@ This project is built incrementally. What exists today:
 | 1 | Real CI-failure dataset miner: 50-case dev split + 25-case held-out test split | done (human label review pending) |
 | 2 | Deterministic rule baseline + evaluation harness | done |
 | 3 | LangGraph investigation agent (local model) + prompt-injection defence | done |
-| 4 | Repository tools for the agent, pinned to the failed commit | code done, evaluation pending |
+| 4 | Repository tools for the agent, pinned to the failed commit | done — measured, and they did not help this model |
 | 5+ | Retrieval, fix generation, isolated verification, approval UI, webhooks | not started |
 
 Nothing beyond the table above is implemented yet: there is no API, database, UI or hosted
-tracing in this repository today. Phase 4's tools are built and tested but have not yet been
-evaluated on a full split, so no numbers are claimed for them below.
+tracing in this repository today.
 
 ## Setup
 
@@ -321,6 +320,50 @@ the whole allowlist; `run_tests` belongs with Phase 7's isolated environment.
 Searching needs file contents, and the clones are blobless. Fetching them one lazy read at a
 time costs ~0.9 s per file; the commit is instead hydrated once with a size-limited filter,
 measured at 1.5 s, after which `git grep` is local.
+
+### Results: the tools did not help this model
+
+A 15-case pilot on the dev split, both systems run on the same cases (a seeded random sample
+of the localization-eligible cases, so the sample cannot favour the buckets tools were built
+for). The rule for what to do next was written down before the run: scale up only if
+`agent_tools` beats the tool-free agent.
+
+| | agent v2 (no tools) | agent_tools | baseline |
+|---|---|---|---|
+| Localization hit@1 | 10/14 | **10/14** | 8/14 |
+| Cases won by tools | — | **0** | — |
+| Cases lost to tools | — | **0** | — |
+| Mean latency | 98 s | **207 s** | ~0 s |
+| LLM calls | 20 | **63** | 0 |
+| Tool calls | 0 | 42 | 0 |
+| Errors | 0 | 0 | 0 |
+
+**Paired on all 14 cases the two systems could be compared on, the outcome is identical.**
+Not "similar" — the same cases right and the same cases wrong, for 2.1x the wall clock and
+3.2x the model calls. So the pilot was not scaled to the full split, and the tools are not
+claimed as an improvement.
+
+The traces say why, and it is not that the tools failed. On three of the four misses the
+model searched the repository for text that was never code:
+
+| Missed case | What it searched for |
+|---|---|
+| fastapi coverage gate | `coverage report --fail-under=100` — a command line from the log |
+| fastapi pre-commit | `pre-commit` — then read `.pre-commit-config.yaml` and blamed it |
+| pydantic windows test | `Process completed with exit code 1` — a GitHub Actions log marker |
+
+On the fourth it searched correctly, `read_file`'d the exact file the real fix changed, and
+still answered with two files it had been handed in the original evidence.
+
+So the gap is not reach, it is aim: a 7B model does not reliably distinguish "text from the
+log" from "a symbol in the source", and giving it more reach does not teach it to. The
+honest reading at n=14 is narrow — this says nothing about what a stronger model would do
+with the same tools, and the confidence intervals here overlap almost completely. What it
+does say is that the next thing to build is not another tool.
+
+One caveat on the headroom command when pointed at a tool-using system: its `name_only` and
+`blind` buckets describe what the *evidence packer* sent, so they do not move when a tool
+later fetches the file. It is a before-you-build diagnostic, not a scorecard for these runs.
 
 ### Data provenance
 
