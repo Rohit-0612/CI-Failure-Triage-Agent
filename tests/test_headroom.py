@@ -155,3 +155,26 @@ def test_missing_clone_directory_does_not_crash(record_dict, missing):
     analysis = classify(case, _prediction(case, []), missing or Path("also/missing"))
 
     assert analysis is not None
+
+
+def test_only_answered_cases_are_bucketed(record_dict, tmp_path):
+    """A case with no prediction is not a miss, it is absent.
+
+    Counting it as a miss turns a partial run into a damning report: the 15-case pilot
+    was read as 25 extra failures, putting hit@1 at 25% where it was 71%. `score` has
+    always restricted itself to answered cases; this must match.
+    """
+    answered = _case(record_dict, gold=["app.py"], relevant_files=[_file("app.py", "x\n")])
+    answered = CaseRecord.model_validate({**answered.model_dump(mode="json"), "case_id": "o__r__a"})
+    unanswered = CaseRecord.model_validate(
+        {**answered.model_dump(mode="json"), "case_id": "o__r__b"}
+    )
+    prediction = _prediction(answered, ["app.py"])
+    prediction.case_id = answered.case_id
+
+    result = analyse([answered, unanswered], [prediction], tmp_path)
+
+    assert result["cases_scored"] == 1
+    assert result["cases_in_split"] == 2
+    assert result["buckets"]["hit"] == 1
+    assert result["hit_at_1"] == 1.0  # not 0.5

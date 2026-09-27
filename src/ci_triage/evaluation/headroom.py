@@ -126,16 +126,22 @@ def analyse(
     cases: list[CaseRecord], predictions: list[Prediction], repos_dir: Path
 ) -> dict[str, Any]:
     by_id = {p.case_id: p for p in predictions}
+    # Only cases the system actually answered. Bucketing a case with no prediction
+    # counts it as a miss, which silently turns a partial run into a damning report:
+    # a 15-case pilot read as 25 extra failures and put hit@1 at 25% instead of 71%.
+    # `score` has always restricted itself this way; this now matches it.
     rows = [
         analysis
         for case in cases
-        if (analysis := classify(case, by_id.get(case.case_id), repos_dir)) is not None
+        if case.case_id in by_id
+        and (analysis := classify(case, by_id[case.case_id], repos_dir)) is not None
     ]
     counts = Counter(row.bucket for row in rows)
     total = len(rows)
     reachable = sum(counts[bucket] for bucket in REACHABLE)
     return {
         "cases_scored": total,
+        "cases_in_split": len(cases),
         "buckets": {bucket: counts[bucket] for bucket in BUCKETS},
         "share": {
             bucket: round(counts[bucket] / total, 3) if total else None for bucket in BUCKETS
@@ -161,7 +167,11 @@ def analyse(
 
 def format_report(result: dict[str, Any], system: str, split: str) -> str:
     total = result["cases_scored"]
-    lines = [f"{system} on {split}: {total} localization-eligible cases", ""]
+    lines = [
+        f"{system} on {split}: {total} localization-eligible cases"
+        f" (split has {result.get('cases_in_split', total)})",
+        "",
+    ]
     for bucket in BUCKETS:
         count = result["buckets"][bucket]
         lines.append(f"  {count:3d} ({count / total:6.1%})  {bucket:<11} {BUCKET_MEANING[bucket]}")
